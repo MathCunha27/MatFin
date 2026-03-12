@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MatFin">
+<meta name="theme-color" content="#0F0F0E">
+<title>MatFin — Matemática Financeira</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjMEYwRjBFIi8+PHRleHQgeD0iOTAiIHk9IjEwNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI3MCIgZmlsbD0iI0M5QTg0QyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiPk1GPC90ZXh0Pjwvc3ZnPg==">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { background: #0F0F0E; color: #E8E4DC; font-family: -apple-system, 'Palatino Linotype', Georgia, serif; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+  body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  input { font-size: 16px !important; }
+  ::-webkit-scrollbar { display: none; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect, useCallback } = React;
+
+const C = {
+  bg: "#0F0F0E", card: "#1A1918", border: "#2A2928",
+  gold: "#C9A84C", goldDim: "#8B7A3E",
+  text: "#E8E4DC", textDim: "#9B9590", textContent: "#D0CBC3",
+  green: "#5B9A5F", greenBg: "#5B9A5F20", red: "#C75450", redBg: "#C7545020",
+  blue: "#6B9BD2"
+};
+
+const questionBanks = {
+  1: [
+    { q: "Você investiu R$2.000 a 4% ao mês por 5 meses (juros simples). Qual o montante?", options: ["R$2.400,00", "R$2.433,31", "R$2.800,00", "R$2.040,00"], correct: 0, wrongFeedback: { 1: "Esse resultado seria juros COMPOSTOS. Aqui é SIMPLES: FV = PV × (1 + i × n).", 2: "Você usou 0,4 em vez de 0,04. Regra: 4% ÷ 100 = 0,04.", 3: "Calculou só 1 mês. Multiplique pelo prazo: 0,04 × 5 = 0,20." }, rightFeedback: "FV = 2.000 × (1 + 0,04 × 5) = 2.000 × 1,20 = R$2.400,00", steps: "PV=2.000 | i=0,04 | n=5\nFV = 2.000 × (1 + 0,04 × 5)\n= 2.000 × 1,20\n= R$ 2.400,00" },
+    { q: "Capital de R$10.000 rendeu R$1.800 de juros simples em 6 meses. Taxa mensal?", options: ["3% a.m.", "1,8% a.m.", "18% a.m.", "0,3% a.m."], correct: 0, wrongFeedback: { 1: "Dividiu J/PV mas é taxa acumulada. Falta ÷ prazo: 0,18 ÷ 6 = 0,03.", 2: "0,18 é taxa de 6 meses. Mensal: 0,18 ÷ 6 = 3%.", 3: "0,03 decimal = 3% (×100). Cuidado na conversão." }, rightFeedback: "i = 1.800/(10.000×6) = 0,03 = 3% a.m.", steps: "i = J / (PV × n)\n= 1.800 / (10.000 × 6)\n= 1.800 / 60.000\n= 0,03 = 3% a.m." },
+    { q: "R$100 hoje valem o mesmo que R$100 daqui a 1 ano?", options: ["Não, R$100 hoje valem MAIS", "Sim, é o mesmo valor", "R$100 no futuro valem MAIS", "Depende só da inflação"], correct: 0, wrongFeedback: { 1: "O número é igual, mas o VALOR REAL não. R$100 investidos viram mais.", 2: "Ao contrário! Dinheiro presente vale mais pelo custo de oportunidade.", 3: "Inflação é UM fator. Mesmo com inflação zero há custo de oportunidade." }, rightFeedback: "R$100 hoje > R$100 amanhã: pode investir, inflação corrói, e há risco futuro.", steps: "Dinheiro tem VALOR NO TEMPO:\n1) Oportunidade de investir\n2) Inflação\n3) Risco\n∴ R$100 hoje > R$100 amanhã" },
+    { q: "Taxa 5% a.m. e prazo 2 anos. O que fazer antes de calcular?", options: ["Converter prazo: n = 24 meses", "Nada, aplicar direto", "Converter taxa: 60% a.a.", "Dividir taxa por 2"], correct: 0, wrongFeedback: { 1: "Misturar meses com anos dá erro! Taxa e prazo na mesma unidade.", 2: "Funciona em simples, mas cria mau hábito. Converta o prazo.", 3: "Dividir por 2? 2 anos × 12 = 24 meses." }, rightFeedback: "Taxa mensal → prazo em meses: 2 × 12 = 24.", steps: "Taxa: 5% a.m. → MESES\nPrazo: 2 anos → converter\n2 × 12 = 24 meses ✓" },
+    { q: "R$3.000 aplicados, montante R$3.720. Qual o juro?", options: ["R$720", "R$3.720", "R$6.720", "R$3.000"], correct: 0, wrongFeedback: { 1: "R$3.720 é MONTANTE, não juros. J = FV − PV.", 2: "SOMOU. Juros = DIFERENÇA: 3.720 − 3.000.", 3: "R$3.000 é capital. Juros = montante − capital." }, rightFeedback: "J = FV − PV = 3.720 − 3.000 = R$720.", steps: "J = FV − PV\n= 3.720 − 3.000\n= R$ 720" },
+    { q: "PV e FV: qual a diferença?", options: ["PV = valor hoje, FV = valor futuro", "PV = parcela, FV = financiamento", "São iguais", "PV = juros, FV = montante"], correct: 0, wrongFeedback: { 1: "PV não é parcela. PV = Present Value.", 2: "FV inclui juros. Não são iguais.", 3: "PV = capital inicial. J = FV − PV." }, rightFeedback: "PV = valor presente. FV = valor futuro. J = FV − PV.", steps: "PV = HOJE\nFV = FUTURO\nJ = FV − PV\nFV = PV + J" },
+    { q: "5% ao mês em decimal:", options: ["0,05", "0,5", "5,0", "0,005"], correct: 0, wrongFeedback: { 1: "0,5 = 50%. Divida por 100.", 2: "5,0 = 500%. % ÷ 100.", 3: "0,005 = 0,5%. Dividiu por 1.000." }, rightFeedback: "5% ÷ 100 = 0,05.", steps: "% → decimal: ÷ 100\n5% = 0,05\n8% = 0,08" },
+    { q: "R$7.000 a 2,5% a.m. por 10 meses. Montante?", options: ["R$8.750", "R$7.175", "R$8.925", "R$9.100"], correct: 0, wrongFeedback: { 1: "Calculou só 1 mês. i×n = 0,025 × 10 = 0,25.", 2: "0,025 × 10 = 0,25. FV = 7.000 × 1,25.", 3: "i×n = 0,25 (não 0,30)." }, rightFeedback: "FV = 7.000 × 1,25 = R$8.750.", steps: "FV = 7.000 × (1 + 0,025 × 10)\n= 7.000 × 1,25\n= R$ 8.750" },
+    { q: "J = PV × i × n. Como isolar n?", options: ["n = J / (PV × i)", "n = PV × i / J", "n = J × PV × i", "n = (PV×i) − J"], correct: 0, wrongFeedback: { 1: "Inverteu! n = J / (PV × i).", 2: "Multiplicar tudo? Isolar = dividir.", 3: "Subtração não isola multiplicação." }, rightFeedback: "n = J / (PV × i).", steps: "J = PV × i × n\nn = J / (PV × i)" },
+    { q: "R$12.000 renderam R$2.160 a 3% a.m. Prazo?", options: ["6 meses", "3 meses", "9 meses", "12 meses"], correct: 0, wrongFeedback: { 1: "3 meses: J=1.080 (metade). Prazo = dobro.", 2: "9 meses: J=3.240. n = 2.160/360 = 6.", 3: "12 meses: J=4.320. n = 2.160/360 = 6." }, rightFeedback: "n = 2.160/360 = 6 meses.", steps: "n = 2.160 / (12.000 × 0,03)\n= 2.160 / 360 = 6 meses" }
+  ],
+  2: [
+    { q: "R$4.000 a 6% a.m. por 5 meses. Montante?", options: ["R$5.200", "R$4.240", "R$5.353", "R$4.120"], correct: 0, wrongFeedback: { 1: "Usou n=1. Prazo=5: 0,06×5=0,30.", 2: "Juros compostos. Simples: 4.000×1,30.", 3: "0,06×5=0,30 (não 0,03)." }, rightFeedback: "FV = 4.000 × 1,30 = R$5.200.", steps: "FV = 4.000 × (1 + 0,06 × 5)\n= 4.000 × 1,30 = R$ 5.200" },
+    { q: "R$6.000 a 2% a.m. rendeu R$720. Prazo?", options: ["6 meses", "3 meses", "12 meses", "36 meses"], correct: 0, wrongFeedback: { 1: "3 meses: J=360 (metade). Prazo=dobro.", 2: "12 meses: J=1.440. n=720/120=6.", 3: "36 meses: J=4.320." }, rightFeedback: "n = 720/120 = 6 meses.", steps: "n = 720 / (6.000 × 0,02)\n= 720 / 120 = 6 meses" },
+    { q: "24% a.a. em juros simples. Taxa mensal?", options: ["2% a.m.", "0,2% a.m.", "24% a.m.", "12% a.m."], correct: 0, wrongFeedback: { 1: "24÷120≠certo. 24/12=2%.", 2: "24%a.a.≠24%a.m. Divide por 12.", 3: "24/2=12? Não. 24/12=2." }, rightFeedback: "24%/12 = 2% a.m.", steps: "i mensal = 24% / 12 = 2% a.m." },
+    { q: "Em juros simples, juros incidem sobre:", options: ["Capital inicial (PV)", "Montante acumulado", "Juros anteriores", "Inflação"], correct: 0, wrongFeedback: { 1: "Sobre montante = COMPOSTOS.", 2: "Juros sobre juros = compostos.", 3: "Inflação é separada." }, rightFeedback: "Sempre sobre o capital inicial. Linear.", steps: "Mês 1: J sobre PV\nMês 2: J sobre PV\n→ LINEAR" },
+    { q: "R$5.000 em 2 bancos. A:3%,4m. B:5%,6m. Jtotal=1.140. Banco A?", options: ["R$2.000", "R$3.000", "R$2.500", "R$4.000"], correct: 0, wrongFeedback: { 1: "x=3.000: total=960≠1.140.", 2: "x=2.500: total=1.050≠1.140.", 3: "x=4.000: total=780≠1.140." }, rightFeedback: "−0,18x=−360 → x=2.000.", steps: "J₁=0,12x | J₂=1.500−0,30x\n−0,18x=−360\nx=R$ 2.000" },
+    { q: "R$8.000 por 90 dias a 4% a.m. (comercial). Montante?", options: ["R$8.960", "R$8.320", "R$9.280", "R$8.987"], correct: 0, wrongFeedback: { 1: "n=90/30=3, não 1.", 2: "0,04×3=0,12 (não 0,16).", 3: "Comercial: 90/30=3 exato." }, rightFeedback: "n=3. FV=8.000×1,12=R$8.960.", steps: "n=90/30=3\nFV=8.000×1,12=R$8.960" },
+    { q: "Diferença entre juros comerciais e exatos?", options: ["Comerciais: 360 dias; exatos: 365", "Comerciais mais baratos", "Exatos só pra compostos", "Nenhuma"], correct: 0, wrongFeedback: { 1: "Comerciais dão MAIS juros.", 2: "Exatos funcionam em ambos.", 3: "Muda o denominador." }, rightFeedback: "Comercial: 360 dias. Exato: 365. Comercial é padrão bancário.", steps: "Comercial: ano=360, mês=30\nExato: ano=365" },
+    { q: "R$15.000, montante R$18.150 após 7 meses. Taxa?", options: ["3% a.m.", "2,1% a.m.", "4,5% a.m.", "21% a.m."], correct: 0, wrongFeedback: { 1: "i=3.150/105.000=0,03=3%.", 2: "15.000×7=105.000 (não 70.000).", 3: "21%=J/PV sem ÷ prazo." }, rightFeedback: "J=3.150. i=3.150/105.000=3%.", steps: "J=18.150−15.000=3.150\ni=3.150/(15.000×7)=3%" },
+    { q: "R$20.000 a 1,5% a.m. por 1 ano. Juros totais?", options: ["R$3.600", "R$300", "R$3.942", "R$360"], correct: 0, wrongFeedback: { 1: "1 mês só. Precisa ×12.", 2: "Compostos. Simples: PV×i×n.", 3: "n=12 meses, não 1,2." }, rightFeedback: "J = 20.000 × 0,015 × 12 = R$3.600.", steps: "n=12 meses\nJ=20.000×0,015×12=R$3.600" }
+  ]
+};
+
+const modules = [
+  { id:1, title:"Fundamentos", subtitle:"O dinheiro no tempo", emoji:"🧱",
+    lesson: [
+      { type:"analogy", title:"Primeiro, uma analogia", content:"Imagine que dinheiro é como gelo num dia quente. Se deixa R$100 parado (inflação), derrete.\n\nMatFin é a ciência de:\n• Medir a velocidade do derretimento (taxa)\n• Fazer o gelo crescer mais rápido (investir)\n• Comparar blocos de gelo em momentos diferentes" },
+      { type:"concept", title:"O princípio fundamental", content:"A base de TUDO:\n\n✦ R$100 HOJE valem mais que R$100 AMANHÃ ✦\n\nPor quê? R$100 investidos hoje viram MAIS amanhã.\n\nIsso é o 'valor do dinheiro no tempo'." },
+      { type:"vocabulary", title:"Vocabulário essencial", content:"🟡 PV = CAPITAL = valor HOJE\n🟡 FV = MONTANTE = valor FUTURO\n🟡 J = JUROS = FV − PV\n🟡 i = TAXA (decimal: 8% = 0,08)\n🟡 n = PRAZO\n\n⚠️ REGRA DE OURO: i e n na mesma unidade!\nTaxa mensal → prazo em MESES" },
+      { type:"formula", title:"As fórmulas", content:"┌──────────────────────────────┐\n│  J = PV × i × n             │\n│  FV = PV × (1 + i × n)      │\n│  PV = FV / (1 + i × n)      │\n│  i = J / (PV × n)           │\n│  n = J / (PV × i)           │\n└──────────────────────────────┘\n\nA MESMA fórmula rearranjada." },
+      { type:"example", title:"Exemplo resolvido", content:"📝 R$5.000 a 3% a.m., 4 meses:\n\nFV = 5.000 × (1 + 0,03 × 4)\nFV = 5.000 × 1,12\nFV = R$ 5.600\n\n✅ J = 5.600 − 5.000 = 600 ✓" },
+      { type:"example", title:"Exemplo 2 — achar taxa", content:"📝 PV=8.000, J=960, n=6:\n\n960 = 8.000 × i × 6\ni = 960 / 48.000\ni = 0,02 = 2% a.m. ✓" }
+    ]
+  },
+  { id:2, title:"Juros Simples", subtitle:"A base de tudo", emoji:"📏",
+    lesson: [
+      { type:"analogy", title:"Analogia: Salário fixo", content:"Juros simples = salário fixo.\n\nEmprestou R$10.000: recebe R$200/mês.\nSempre igual. Juros sobre o ORIGINAL.\nCrescimento LINEAR — degraus iguais." },
+      { type:"concept", title:"Regra central", content:"Juros SEMPRE sobre o CAPITAL INICIAL.\n\nMês 1: J sobre PV\nMês 2: J sobre PV (NÃO PV+J₁)\n\n= LINHA RETA\n\nEm compostos: sobre acumulado = CURVA." },
+      { type:"formula", title:"Fórmulas + Conversão", content:"┌──────────────────────────────┐\n│  FV = PV × (1 + i × n)      │\n│  J = PV × i × n             │\n└──────────────────────────────┘\n\nCONVERSÃO (proporcional):\nAnual→Mensal: ÷12\nMensal→Diária: ÷30\n\n⚠️ Em compostos NÃO funciona!" },
+      { type:"example", title:"Exemplo: Questão 22!", content:"📝 R$3.000, B1:8%,6m. B2:10%,8m. J=1.824\n\nJ₁ = x×0,08×6 = 0,48x\nJ₂ = (3.000−x)×0,80 = 2.400−0,80x\n\n0,48x + 2.400 − 0,80x = 1.824\n−0,32x = −576 → x = 1.800\n\n✅ B1:R$1.800 | B2:R$1.200" }
+    ]
+  }
+];
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function makeQuiz(id){const bank=questionBanks[id]||[];return shuffle(bank).slice(0,5).map(q=>{const si=shuffle(q.options.map((_,i)=>i));const wf={};for(const[k,v]of Object.entries(q.wrongFeedback)){const n=si.indexOf(parseInt(k));if(n>=0)wf[n]=v;}return{...q,options:si.map(i=>q.options[i]),correct:si.indexOf(q.correct),wrongFeedback:wf};});}
+function getExtra(id,used){const a=(questionBanks[id]||[]).filter(q=>!used.includes(q.q));if(!a.length)return null;const q=a[Math.floor(Math.random()*a.length)];const si=shuffle(q.options.map((_,i)=>i));const wf={};for(const[k,v]of Object.entries(q.wrongFeedback)){const n=si.indexOf(parseInt(k));if(n>=0)wf[n]=v;}return{...q,options:si.map(i=>q.options[i]),correct:si.indexOf(q.correct),wrongFeedback:wf};}
+
+function App(){
+  const[view,setView]=useState("roadmap");
+  const[modId,setModId]=useState(null);
+  const[ls,setLs]=useState(0);
+  const[qs,setQs]=useState([]);
+  const[qi,setQi]=useState(0);
+  const[sel,setSel]=useState(null);
+  const[rev,setRev]=useState(false);
+  const[sc,setSc]=useState(0);
+  const[ss,setSs]=useState(false);
+  const[unlocked,setUn]=useState([1]);
+  const[done,setDone]=useState([]);
+  const[tOpen,setTO]=useState(false);
+  const[tMsgs,setTM]=useState([]);
+  const[tLoad,setTL]=useState(false);
+  const[ext,setExt]=useState(0);
+  const sRef=useRef(null);
+  const tEnd=useRef(null);
+  const iRef=useRef(null);
+
+  useEffect(()=>{if(sRef.current)sRef.current.scrollTo(0,0);},[view,ls,qi]);
+  useEffect(()=>{if(tEnd.current)tEnd.current.scrollIntoView({behavior:"smooth"});},[tMsgs,tLoad]);
+
+  const mod=modId?modules.find(m=>m.id===modId):null;
+  const total=qs.length;
+  const passN=Math.ceil(total*0.7);
+
+  const openMod=id=>{setModId(id);setLs(0);setView("lesson");setQs([]);setQi(0);setSel(null);setRev(false);setSc(0);setSs(false);setExt(0);};
+  const startQ=()=>{setQs(makeQuiz(modId));setQi(0);setSel(null);setRev(false);setSc(0);setSs(false);setExt(0);setView("quiz");};
+  const ans=i=>{if(rev)return;setSel(i);setRev(true);if(i===qs[qi].correct)setSc(s=>s+1);};
+  const nextQ=()=>{
+    const wrong=sel!==qs[qi].correct;
+    let uq=qs;
+    if(wrong&&ext<3){const e=getExtra(modId,qs.map(q=>q.q));if(e){uq=[...qs,e];setQs(uq);setExt(x=>x+1);}}
+    if(qi<uq.length-1){setQi(q=>q+1);setSel(null);setRev(false);setSs(false);}else setView("result");
+  };
+  const finish=()=>{
+    if(sc>=passN&&!done.includes(modId)){setDone(p=>[...p,modId]);const n=modId+1;if(n<=7&&!unlocked.includes(n))setUn(p=>[...p,n]);}
+    setView("roadmap");setModId(null);
+  };
+
+  const sendMsg=useCallback(async()=>{
+    const v=iRef.current?.value?.trim();if(!v||tLoad)return;iRef.current.value="";
+    const nm=[...tMsgs,{role:"user",content:v}];setTM(nm);setTL(true);
+    try{
+      const ctx=mod?`Aluno no Módulo ${mod.id}: ${mod.title}.`:"Navegando o roadmap.";
+      const cq=view==="quiz"&&qs[qi]?`\nQuestão: "${qs[qi].q}"`:"";
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
+          system:`Tutor de MatFin para estudante brasileiro. ${ctx}${cq}\nRegras: português BR, analogias, passo a passo estilo caderno, NUNCA dê resposta de quiz, máx 200 palavras.`,
+          messages:nm.map(m=>({role:m.role,content:m.content}))})});
+      const d=await r.json();
+      setTM(p=>[...p,{role:"assistant",content:d.content?.map(c=>c.text||"").join("\n")||"Erro."}]);
+    }catch{setTM(p=>[...p,{role:"assistant",content:"Erro de conexão."}]);}
+    setTL(false);
+  },[tMsgs,tLoad,mod,view,qs,qi]);
+
+  const onKey=useCallback(e=>{if(e.key==="Enter"){e.preventDefault();sendMsg();}},[sendMsg]);
+
+  const Tutor=()=>(<>
+    <div onClick={()=>setTO(o=>!o)} style={{position:"fixed",bottom:20,right:20,width:54,height:54,borderRadius:"50%",background:C.gold,color:C.bg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:22,zIndex:1001,boxShadow:"0 4px 20px rgba(201,168,76,0.4)"}}>{tOpen?"×":"🎓"}</div>
+    {tOpen&&<div style={{position:"fixed",bottom:0,left:0,right:0,height:"65vh",background:"#141413",borderTop:`2px solid ${C.gold}`,display:"flex",flexDirection:"column",zIndex:1000,borderTopLeftRadius:16,borderTopRightRadius:16}}>
+      <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,background:C.card,flexShrink:0,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:14,color:C.gold,fontWeight:600}}>🎓 Tutor AI</span>
+        <span onClick={()=>setTO(false)} style={{color:C.textDim,cursor:"pointer",fontSize:22,padding:"4px 8px"}}>×</span>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:14,display:"flex",flexDirection:"column",gap:10,WebkitOverflowScrolling:"touch"}}>
+        {tMsgs.length===0&&<div style={{textAlign:"center",color:C.textDim,fontSize:13,marginTop:32,lineHeight:1.8}}>👋 Tutor de MatFin.<br/>Pergunte qualquer dúvida!</div>}
+        {tMsgs.map((m,i)=><div key={i} style={{alignSelf:m.role==="user"?"flex-end":"flex-start",maxWidth:"85%",padding:"10px 14px",background:m.role==="user"?C.gold+"20":C.card,border:`1px solid ${m.role==="user"?C.goldDim:C.border}`,borderRadius:m.role==="user"?"12px 12px 4px 12px":"12px 12px 12px 4px",fontSize:14,lineHeight:1.7,color:C.textContent,whiteSpace:"pre-line"}}>{m.content}</div>)}
+        {tLoad&&<div style={{alignSelf:"flex-start",padding:"10px 14px",background:C.card,border:`1px solid ${C.border}`,borderRadius:"12px 12px 12px 4px",fontSize:14,color:C.textDim}}>Pensando...</div>}
+        <div ref={tEnd}/>
+      </div>
+      <div style={{padding:"10px 14px",borderTop:`1px solid ${C.border}`,background:C.card,flexShrink:0,display:"flex",gap:8}}>
+        <input ref={iRef} defaultValue="" onKeyDown={onKey} placeholder="Sua dúvida..." autoComplete="off" autoCorrect="off" spellCheck={false} style={{flex:1,background:C.bg,border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",color:C.text,fontSize:16,outline:"none",WebkitAppearance:"none"}}/>
+        <button onClick={sendMsg} disabled={tLoad} style={{background:C.gold,color:C.bg,border:"none",borderRadius:8,padding:"12px 18px",cursor:"pointer",fontWeight:700,fontSize:16,opacity:tLoad?0.4:1,minWidth:48}}>→</button>
+      </div>
+    </div>}
+  </>);
+
+  const ph={3:{t:"Valor Atual & Nominal",s:"Quanto vale hoje?",e:"🎯"},4:{t:"Juros Compostos",s:"A 8ª maravilha",e:"🚀"},5:{t:"Séries de Pagamentos",s:"Parcelas",e:"🔄"},6:{t:"Amortização",s:"SAC vs Price",e:"🏠"},7:{t:"Análise de Investimentos",s:"VPL, TIR",e:"📊"}};
+  const Btn=({children,primary,onClick,style:s})=><div onClick={onClick} style={{padding:"12px 20px",background:primary?C.gold:"#252423",color:primary?C.bg:C.text,borderRadius:10,cursor:"pointer",fontSize:14,fontWeight:primary?700:400,textAlign:"center",...s}}>{children}</div>;
+
+  if(view==="roadmap")return(
+    <div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"32px 16px"}} ref={sRef}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:11,letterSpacing:5,color:C.goldDim,textTransform:"uppercase",marginBottom:8}}>Matemática Financeira</div>
+          <h1 style={{fontSize:26,fontWeight:400,color:C.gold,margin:0}}>Seu Roadmap</h1>
+          <p style={{color:C.textDim,fontSize:13,margin:"4px 0 0",fontStyle:"italic"}}>{done.length}/7</p>
+        </div>
+        <div style={{background:C.card,borderRadius:10,padding:"12px 16px",marginBottom:24,border:`1px solid ${C.border}`}}>
+          <div style={{background:C.bg,borderRadius:6,height:6,overflow:"hidden"}}><div style={{width:`${(done.length/7)*100}%`,height:"100%",background:`linear-gradient(90deg,${C.goldDim},${C.gold})`,borderRadius:6,transition:"width 0.5s"}}/></div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {[...modules,...[3,4,5,6,7].map(id=>({id,title:ph[id].t,subtitle:ph[id].s,emoji:ph[id].e,ph:true}))].map(m=>{
+            const u=unlocked.includes(m.id),d=done.includes(m.id);
+            return <div key={m.id} onClick={()=>u&&!m.ph&&openMod(m.id)} style={{background:u?C.card:"#131312",border:`1px solid ${d?C.gold:u?C.border:"#1f1e1d"}`,borderRadius:12,padding:"14px 16px",cursor:u&&!m.ph?"pointer":"default",opacity:u?1:0.35,display:"flex",alignItems:"center",gap:12,position:"relative"}}>
+              {d&&<div style={{position:"absolute",top:0,right:0,background:C.gold,color:C.bg,fontSize:9,padding:"2px 8px",borderBottomLeftRadius:8,fontWeight:700}}>✓</div>}
+              <div style={{width:40,height:40,borderRadius:"50%",background:d?C.gold:"#252423",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,color:d?C.bg:C.textDim,flexShrink:0}}>{d?"✓":u?m.emoji:"🔒"}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:10,letterSpacing:2,color:C.goldDim,textTransform:"uppercase"}}>Módulo {m.id}</div>
+                <div style={{fontSize:15,color:u?C.text:C.textDim}}>{m.title}</div>
+                <div style={{fontSize:12,color:C.textDim,fontStyle:"italic"}}>{m.subtitle}</div>
+              </div>
+              {u&&!d&&!m.ph&&<span style={{color:C.gold}}>→</span>}
+            </div>;
+          })}
+        </div>
+        <div style={{marginTop:24,padding:12,background:C.card,borderRadius:10,border:`1px solid ${C.border}`,fontSize:12,color:C.textDim,lineHeight:1.6,textAlign:"center"}}>
+          <strong style={{color:C.gold}}>Dica:</strong> Aula → Quiz adaptativo → 70% pra avançar. Use 🎓 pra dúvidas.
+        </div>
+      </div>
+      <Tutor/>
+    </div>
+  );
+
+  if(!mod)return null;
+
+  if(view==="lesson"){
+    const step=mod.lesson[ls];const last=ls===mod.lesson.length-1;
+    const lb={analogy:"🎯 Analogia",concept:"📖 Conceito",vocabulary:"📝 Vocabulário",formula:"📐 Fórmulas",example:"✏️ Exemplo"};
+    const cl={analogy:C.gold,concept:C.blue,vocabulary:C.gold,formula:C.green,example:"#C78F50"};
+    return(<div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"28px 16px"}} ref={sRef}>
+        <div onClick={()=>setView("roadmap")} style={{color:C.goldDim,fontSize:13,cursor:"pointer",marginBottom:16}}>← Roadmap</div>
+        <div style={{marginBottom:16}}><div style={{fontSize:10,letterSpacing:3,color:C.goldDim,textTransform:"uppercase"}}>Módulo {mod.id}</div><h2 style={{fontSize:22,fontWeight:400,color:C.gold,margin:"2px 0 0"}}>{mod.title}</h2></div>
+        <div style={{display:"flex",gap:4,marginBottom:20}}>{mod.lesson.map((_,i)=><div key={i} onClick={()=>setLs(i)} style={{flex:1,height:4,borderRadius:2,cursor:"pointer",background:i<=ls?C.gold:"#252423"}}/>)}</div>
+        <div style={{background:C.card,borderRadius:12,border:`1px solid ${C.border}`,padding:"20px 18px",marginBottom:16}}>
+          <div style={{display:"inline-block",fontSize:11,letterSpacing:2,textTransform:"uppercase",color:cl[step.type]||C.gold,marginBottom:12,padding:"3px 10px",background:(cl[step.type]||C.gold)+"15",borderRadius:6}}>{lb[step.type]}</div>
+          <h3 style={{fontSize:17,fontWeight:400,color:C.text,margin:"0 0 14px"}}>{step.title}</h3>
+          <div style={{fontSize:14,lineHeight:1.85,color:C.textContent,whiteSpace:"pre-line",fontFamily:["formula","example"].includes(step.type)?"'Courier New',monospace":"inherit",background:["formula","example"].includes(step.type)?C.bg:"transparent",padding:["formula","example"].includes(step.type)?"16px":"0",borderRadius:10,borderLeft:step.type==="example"?`3px solid ${C.gold}`:"none",overflowX:"auto"}}>{step.content}</div>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          {ls>0&&<Btn onClick={()=>setLs(s=>s-1)}>← Anterior</Btn>}
+          <div style={{flex:1}}/>
+          <Btn primary={last} onClick={()=>last?startQ():setLs(s=>s+1)}>{last?"Quiz 🧠":"Próximo →"}</Btn>
+        </div>
+      </div>
+      <Tutor/>
+    </div>);
+  }
+
+  if(view==="quiz"&&qs[qi]){
+    const q=qs[qi];const ok=sel===q.correct;
+    return(<div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"28px 16px"}} ref={sRef}>
+        <div onClick={()=>{setView("lesson");setLs(0);}} style={{color:C.goldDim,fontSize:13,cursor:"pointer",marginBottom:16}}>← Aula</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div><div style={{fontSize:10,letterSpacing:3,color:C.goldDim,textTransform:"uppercase"}}>Quiz — Módulo {mod.id}</div><h2 style={{fontSize:18,fontWeight:400,color:C.gold,margin:"2px 0 0"}}>{qi+1}/{qs.length}</h2></div>
+          <div style={{background:C.card,borderRadius:8,padding:"5px 10px",border:`1px solid ${C.border}`,fontSize:13,color:C.textDim}}>✓ {sc}</div>
+        </div>
+        {ext>0&&<div style={{background:C.gold+"10",border:`1px solid ${C.goldDim}40`,borderRadius:8,padding:"7px 12px",marginBottom:12,fontSize:12,color:C.goldDim}}>⚡ +{ext} extra(s)</div>}
+        <div style={{display:"flex",gap:3,marginBottom:18}}>{qs.map((_,i)=><div key={i} style={{flex:1,height:3,borderRadius:2,background:i<qi?C.gold:i===qi?C.gold+"88":"#252423"}}/>)}</div>
+        <div style={{background:C.card,borderRadius:12,border:`1px solid ${C.border}`,padding:16,marginBottom:12}}><div style={{fontSize:15,lineHeight:1.7}}>{q.q}</div></div>
+        <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12}}>
+          {q.options.map((o,i)=>{let bg=C.card,bd=C.border,cl=C.text;if(rev){if(i===q.correct){bg=C.greenBg;bd=C.green;cl="#B8DDB9";}else if(i===sel){bg=C.redBg;bd=C.red;cl="#E8B0AE";}}
+            return <div key={i} onClick={()=>ans(i)} style={{padding:"13px 14px",background:bg,border:`1px solid ${bd}`,borderRadius:10,cursor:rev?"default":"pointer",color:cl,fontSize:14,display:"flex",alignItems:"center",gap:10}}>
+              <span style={{width:26,height:26,borderRadius:"50%",border:`1px solid ${bd}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0,background:rev&&i===q.correct?C.green:"transparent",color:rev&&i===q.correct?"#fff":cl}}>{rev&&i===q.correct?"✓":rev&&i===sel?"✗":String.fromCharCode(65+i)}</span>
+              <span style={{flex:1}}>{o}</span>
+            </div>;})}
+        </div>
+        {rev&&<div>
+          <div style={{background:C.card,borderRadius:12,border:`1px solid ${C.border}`,padding:16,marginBottom:8,borderLeft:`3px solid ${ok?C.green:C.red}`}}>
+            <div style={{fontSize:12,fontWeight:700,color:ok?C.green:C.red,marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>{ok?"✅ Correto!":"❌ Errado:"}</div>
+            {!ok&&q.wrongFeedback[sel]&&<div style={{fontSize:13,lineHeight:1.7,color:"#E8B0AE",marginBottom:12,padding:"10px 12px",background:C.redBg,borderRadius:8,whiteSpace:"pre-line"}}>🔍 {q.wrongFeedback[sel]}</div>}
+            <div style={{fontSize:13,lineHeight:1.7,color:C.textContent,whiteSpace:"pre-line"}}><strong style={{color:C.gold}}>Correto:</strong> {q.rightFeedback}</div>
+          </div>
+          <div onClick={()=>setSs(s=>!s)} style={{background:C.card,borderRadius:10,border:`1px solid ${C.border}`,padding:"10px 14px",cursor:"pointer",marginBottom:8,display:"flex",justifyContent:"space-between"}}><span style={{fontSize:13,color:C.gold}}>📐 Passo a passo</span><span style={{color:C.goldDim}}>{ss?"−":"+"}</span></div>
+          {ss&&<div style={{background:C.bg,borderRadius:10,padding:14,border:`1px solid ${C.border}`,fontFamily:"'Courier New',monospace",fontSize:13,lineHeight:2,color:C.textContent,whiteSpace:"pre-line",borderLeft:`3px solid ${C.gold}`,marginBottom:8,overflowX:"auto"}}>{q.steps}</div>}
+          <Btn primary onClick={nextQ}>{qi<qs.length-1?"Próxima →":"Resultado"}</Btn>
+        </div>}
+      </div>
+      <Tutor/>
+    </div>);
+  }
+
+  if(view==="result"){
+    const p=sc>=passN;
+    return(<div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"40px 16px",textAlign:"center"}}>
+        <div style={{fontSize:64,marginBottom:12}}>{p?"🏆":"📚"}</div>
+        <div style={{fontSize:32,color:C.gold,fontWeight:300}}>{sc}/{total}</div>
+        <div style={{fontSize:12,letterSpacing:2,textTransform:"uppercase",color:p?C.green:C.red,margin:"6px 0 24px"}}>{p?"Aprovado":"Não passou"}</div>
+        <div style={{fontSize:14,color:C.textDim,marginBottom:28,lineHeight:1.6}}>{p?`Módulo ${mod.id} dominado!${mod.id<7?` Módulo ${mod.id+1} desbloqueado.`:""}`:`Precisa ${passN} acertos. Questões novas na próxima tentativa!`}</div>
+        <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+          {!p&&<><Btn onClick={()=>{setLs(0);setView("lesson");}}>📖 Revisar</Btn><Btn primary onClick={startQ}>🔄 Tentar</Btn></>}
+          <Btn primary={p} onClick={finish}>{p?"Roadmap →":"Roadmap"}</Btn>
+        </div>
+      </div>
+      <Tutor/>
+    </div>);
+  }
+  return null;
+}
+
+ReactDOM.render(<App/>,document.getElementById("root"));
+</script>
+</body>
+</html>
