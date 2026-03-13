@@ -26,13 +26,6 @@ input{font-size:16px!important}
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const{useState,useRef,useEffect,useCallback}=React;
-const SK="matfin_v3";
-const AK="matfin_auth";
-const C={bg:"#0F0F0E",card:"#1A1918",bd:"#2A2928",gold:"#C9A84C",gd:"#8B7A3E",tx:"#E8E4DC",td:"#9B9590",tc:"#D0CBC3",gn:"#5B9A5F",gnB:"#5B9A5F20",rd:"#C75450",rdB:"#C7545020",bl:"#6B9BD2",or:"#D4913B",orB:"#D4913B20",hp:"#8B6CC1",hpB:"#8B6CC120"};
-function ld(){try{const d=JSON.parse(localStorage.getItem(SK));if(d&&d.u)return d}catch(e){}return{u:[1],d:[],b:{}}}
-function sv(x){try{localStorage.setItem(SK,JSON.stringify(x))}catch(e){}}
-function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 
 const QB={1:[
 {q:"Você investiu R$2.000 a 4% ao mês por 5 meses (juros simples). Qual o montante (FV)?",o:["R$2.400,00","R$2.433,31","R$2.800,00","R$2.040,00"],c:0,wf:{1:"Esse valor seria o resultado usando juros COMPOSTOS (FV = PV × (1+i)ⁿ). Neste módulo estamos em juros SIMPLES — a fórmula é multiplicação, não exponenciação.",2:"Você provavelmente multiplicou errado: 2.000 × 0,4 = 800, depois somou. O erro foi na taxa: 4% = 0,04 (não 0,4). Quando converte porcentagem pra decimal, divide por 100!",3:"Você calculou os juros de apenas 1 mês (2.000 × 0,04 × 1 = 80) e esqueceu de multiplicar pelo prazo completo de 5 meses. Lembre: o 'n' da fórmula representa TODOS os períodos."},rf:"FV = PV × (1 + i × n) = 2.000 × (1 + 0,04 × 5) = 2.000 × 1,20 = R$2.400,00",st:"1️⃣ Identificar dados:\n   PV = 2.000 | i = 4% = 0,04 | n = 5 meses\n\n2️⃣ Escolher a fórmula:\n   Quer o montante → FV = PV × (1 + i × n)\n\n3️⃣ Substituir:\n   FV = 2.000 × (1 + 0,04 × 5)\n\n4️⃣ Resolver de dentro pra fora:\n   0,04 × 5 = 0,20\n   1 + 0,20 = 1,20\n   2.000 × 1,20 = 2.400\n\n5️⃣ Resposta: FV = R$ 2.400,00",ht:"A fórmula pede que você multiplique a taxa pelo prazo PRIMEIRO, some 1, e depois multiplique pelo capital. Qual é i × n aqui?",hp:"Na HP 12C (juros simples usa [f] [INT]):\n\n[f] [CLx]           → limpa registros\n2000 [CHS] [PV]     → capital (negativo)\n4 [ENTER] 12 [×] [i] → taxa anual = 48%\n150 [n]             → prazo em dias (5 × 30)\n[f] [INT]           → juros = 400,00\n[+]                 → total = 2.400,00\n\n⚠️ Na HP 12C, juros simples usa:\n• n em DIAS\n• i como taxa ANUAL\n• PV com sinal negativo (convenção)"},
