@@ -7,14 +7,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MatFin">
 <meta name="theme-color" content="#0F0F0E">
-<title>MatFin — Matemática Financeira</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjMEYwRjBFIi8+PHRleHQgeD0iOTAiIHk9IjEwNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI3MCIgZmlsbD0iI0M5QTg0QyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiPk1GPC90ZXh0Pjwvc3ZnPg==">
+<title>MatFin</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { background: #0F0F0E; color: #E8E4DC; font-family: -apple-system, 'Palatino Linotype', Georgia, serif; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-  body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-  input { font-size: 16px !important; }
-  ::-webkit-scrollbar { display: none; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:#0F0F0E;color:#E8E4DC;font-family:-apple-system,Georgia,serif;overflow-x:hidden;-webkit-text-size-adjust:100%}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+input{font-size:16px!important}
+::-webkit-scrollbar{display:none}
+.mo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.mb{background:#1A1918;border:1px solid #2A2928;border-radius:16px;padding:28px;max-width:320px;width:100%;text-align:center}
+.lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0F0F0E;padding:20px}
+.lock-box{max-width:340px;width:100%;text-align:center}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -23,263 +26,149 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useRef, useEffect, useCallback } = React;
+const{useState,useRef,useEffect,useCallback}=React;
+const SK="matfin_v3";
+const AK="matfin_auth";
+const ACCESS_CODE="saintpaul2026";
+const C={bg:"#0F0F0E",card:"#1A1918",bd:"#2A2928",gold:"#C9A84C",gd:"#8B7A3E",tx:"#E8E4DC",td:"#9B9590",tc:"#D0CBC3",gn:"#5B9A5F",gnB:"#5B9A5F20",rd:"#C75450",rdB:"#C7545020",bl:"#6B9BD2",or:"#D4913B",orB:"#D4913B20",hp:"#8B6CC1",hpB:"#8B6CC120"};
+function ld(){try{const d=JSON.parse(localStorage.getItem(SK));if(d&&d.u)return d}catch(e){}return{u:[1],d:[],b:{}}}
+function sv(x){try{localStorage.setItem(SK,JSON.stringify(x))}catch(e){}}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 
-const C = {
-  bg: "#0F0F0E", card: "#1A1918", border: "#2A2928",
-  gold: "#C9A84C", goldDim: "#8B7A3E",
-  text: "#E8E4DC", textDim: "#9B9590", textContent: "#D0CBC3",
-  green: "#5B9A5F", greenBg: "#5B9A5F20", red: "#C75450", redBg: "#C7545020",
-  blue: "#6B9BD2"
-};
+const QB={1:[
+{q:"Você investiu R$2.000 a 4% ao mês por 5 meses (juros simples). Qual o montante (FV)?",o:["R$2.400,00","R$2.433,31","R$2.800,00","R$2.040,00"],c:0,wf:{1:"Esse valor seria o resultado usando juros COMPOSTOS (FV = PV × (1+i)ⁿ). Neste módulo estamos em juros SIMPLES — a fórmula é multiplicação, não exponenciação.",2:"Você provavelmente multiplicou errado: 2.000 × 0,4 = 800, depois somou. O erro foi na taxa: 4% = 0,04 (não 0,4). Quando converte porcentagem pra decimal, divide por 100!",3:"Você calculou os juros de apenas 1 mês (2.000 × 0,04 × 1 = 80) e esqueceu de multiplicar pelo prazo completo de 5 meses. Lembre: o 'n' da fórmula representa TODOS os períodos."},rf:"FV = PV × (1 + i × n) = 2.000 × (1 + 0,04 × 5) = 2.000 × 1,20 = R$2.400,00",st:"1️⃣ Identificar dados:\n   PV = 2.000 | i = 4% = 0,04 | n = 5 meses\n\n2️⃣ Escolher a fórmula:\n   Quer o montante → FV = PV × (1 + i × n)\n\n3️⃣ Substituir:\n   FV = 2.000 × (1 + 0,04 × 5)\n\n4️⃣ Resolver de dentro pra fora:\n   0,04 × 5 = 0,20\n   1 + 0,20 = 1,20\n   2.000 × 1,20 = 2.400\n\n5️⃣ Resposta: FV = R$ 2.400,00",ht:"A fórmula pede que você multiplique a taxa pelo prazo PRIMEIRO, some 1, e depois multiplique pelo capital. Qual é i × n aqui?",hp:"Na HP 12C (juros simples usa [f] [INT]):\n\n[f] [CLx]           → limpa registros\n2000 [CHS] [PV]     → capital (negativo)\n4 [ENTER] 12 [×] [i] → taxa anual = 48%\n150 [n]             → prazo em dias (5 × 30)\n[f] [INT]           → juros = 400,00\n[+]                 → total = 2.400,00\n\n⚠️ Na HP 12C, juros simples usa:\n• n em DIAS\n• i como taxa ANUAL\n• PV com sinal negativo (convenção)"},
+{q:"Um capital de R$10.000 rendeu R$1.800 de juros simples em 6 meses. Qual a taxa MENSAL?",o:["3% a.m.","1,8% a.m.","18% a.m.","0,3% a.m."],c:0,wf:{1:"Você provavelmente dividiu J por PV direto (1.800 ÷ 10.000 = 0,18 = 18%), mas isso te dá a taxa do PERÍODO TODO (6 meses), não a mensal. Faltou dividir pelo prazo!",2:"0,18 é a taxa ACUMULADA de 6 meses, não a taxa mensal. Pra achar a mensal, precisa dividir pelo número de meses: 0,18 ÷ 6 = 0,03 = 3% a.m.",3:"Você provavelmente achou 3% e depois confundiu 0,03 (decimal) com 0,3% (porcentagem). Cuidado: 0,03 em decimal = 3% (multiplica por 100)."},rf:"i = J/(PV×n) = 1.800/(10.000×6) = 1.800/60.000 = 0,03 = 3% a.m.",st:"1️⃣ Dados: PV=10.000 | J=1.800 | n=6 | i=?\n\n2️⃣ Fórmula (isolando i):\n   J = PV × i × n → i = J / (PV × n)\n\n3️⃣ Substituir:\n   i = 1.800 / (10.000 × 6)\n\n4️⃣ Resolver:\n   10.000 × 6 = 60.000\n   1.800 / 60.000 = 0,03\n\n5️⃣ Converter: 0,03 × 100 = 3%\n\n6️⃣ Resposta: i = 3% a.m.",ht:"Você precisa isolar o 'i'. Se J = PV × i × n, como fica i sozinho? Pense em dividir os dois lados da equação...",hp:"Na HP 12C:\n\n1800 [ENTER]\n10000 [ENTER] 6 [×]\n[÷]\n→ Display: 0,03\n100 [×]\n→ Display: 3,00 (= 3% a.m.)\n\nSequência: J ÷ (PV × n) × 100"},
+{q:"R$100 hoje valem o mesmo que R$100 daqui a 1 ano?",o:["Não, R$100 hoje valem MAIS","Sim, R$100 é R$100","Não, R$100 no futuro valem MAIS","Depende da inflação apenas"],c:0,wf:{1:"Esse é o erro mais comum de quem está começando! Nominalmente (no papel) é o mesmo número, mas o VALOR REAL é diferente. R$100 hoje podem ser investidos e virar R$110 em 1 ano. Então R$100 HOJE = R$110 daqui a 1 ano. Logo, R$100 hoje > R$100 daqui a 1 ano.",2:"É o contrário! Dinheiro no PRESENTE vale mais porque você tem a OPÇÃO de investir. R$100 hoje → investidos → viram mais que R$100 no futuro.",3:"Inflação é UM dos fatores, mas não o único. Mesmo com inflação ZERO, R$100 hoje valem mais porque existe o CUSTO DE OPORTUNIDADE — você poderia investir e ganhar juros."},rf:"R$100 hoje valem mais porque: (1) pode investir e ter mais no futuro, (2) inflação corrói poder de compra, (3) risco de não receber. Este é o princípio #1 da MatFin.",st:"CONCEITO FUNDAMENTAL:\n\nDinheiro hoje > Dinheiro amanhã por 3 razões:\n\n1️⃣ OPORTUNIDADE: R$100 investidos a 10% a.a.\n   → Daqui 1 ano = R$110\n   → Logo, R$100 hoje = R$110 no futuro\n\n2️⃣ INFLAÇÃO: R$100 compram menos coisas com o tempo\n\n3️⃣ RISCO: Pode não receber o dinheiro futuro\n\n💡 Por isso toda a MatFin existe: pra COMPARAR valores em datas diferentes.",ht:"Pense assim: se você tem R$100 hoje e investe a 10%, quanto terá em 1 ano? E se só recebe R$100 daqui a 1 ano, perdeu essa chance...",hp:"Conceitual — mas pra ilustrar na HP:\n\n[f] [CLx]\n100 [CHS] [PV]\n10 [i]\n1 [n]\n[FV]\n→ Display: 110,00\n\n∴ R$100 hoje = R$110 em 1 ano\n   Logo, R$100 hoje > R$100 em 1 ano"},
+{q:"A taxa de juros é 5% a.m. e o prazo é 2 anos. Antes de usar a fórmula, o que você precisa fazer?",o:["Converter o prazo pra meses: n = 24 meses","Nada, só aplicar direto","Converter a taxa pra anual: i = 60% a.a.","Dividir a taxa por 2"],c:0,wf:{1:"Isso daria um resultado completamente errado! Se usar i = 0,05 com n = 2, você estaria calculando juros de 5% por 2 PERÍODOS — mas 2 o quê? A taxa é mensal, o prazo é anual. São unidades diferentes!",2:"Em juros SIMPLES, converter a taxa (5% × 12 = 60% a.a.) e usar n = 2 anos também funciona. MAS em juros compostos NÃO pode fazer isso. Crie o hábito AGORA de converter o prazo.",3:"Dividir por 2 não faz sentido aqui. Converta o prazo: 2 anos × 12 = 24 meses."},rf:"Taxa mensal → prazo em meses: 2 anos × 12 = 24 meses. Agora: i=0,05 e n=24 ✓",st:"REGRA DE OURO:\n\n⚠️ Taxa e prazo SEMPRE na mesma unidade!\n\n1️⃣ Olhe a taxa: 5% a.m. → unidade = MESES\n2️⃣ Olhe o prazo: 2 anos → unidade = ANOS\n3️⃣ Diferentes? SIM → converter\n4️⃣ Converta o PRAZO: 2 × 12 = 24 meses\n5️⃣ Agora pode calcular: i=0,05 | n=24 ✓\n\n💡 MACETE: Sempre converta o prazo, nunca a taxa.",ht:"A regra de ouro diz: taxa e prazo na MESMA unidade. A taxa está em meses. O prazo está em anos. Qual dos dois é mais fácil converter?",hp:"Na HP 12C:\n\n2 [ENTER] 12 [×]\n→ Display: 24,00 (meses)\n\nDepois use:\n24 [n]\n5 [i]\n\nA HP sempre pede n em períodos\ne i por período, na mesma unidade."},
+{q:"R$3.000 aplicados por 8 meses geraram um montante de R$3.720. Qual foi o juro total?",o:["R$720,00","R$3.720,00","R$6.720,00","R$3.000,00"],c:0,wf:{1:"R$3.720 é o MONTANTE (FV), não os juros! O montante é capital + juros. Você confundiu FV com J. J = FV − PV.",2:"Você SOMOU FV + PV (3.720 + 3.000). Os juros são a DIFERENÇA, não a soma! J = FV − PV (subtração).",3:"R$3.000 é o CAPITAL INICIAL (PV), não os juros. Os juros são quanto o dinheiro RENDEU além do capital original. J = FV − PV."},rf:"J = FV − PV = 3.720 − 3.000 = R$720,00. Juros = Montante − Capital. Sempre.",st:"1️⃣ Dados: PV = 3.000 | FV = 3.720 | J = ?\n\n2️⃣ Fórmula: FV = PV + J → J = FV − PV\n\n3️⃣ Calcular: J = 3.720 − 3.000 = R$720,00\n\n💡 Pense assim: você colocou 3.000, tirou 3.720.\nO que sobrou a mais? 720. Esses são os juros.",ht:"Juros é o que o dinheiro RENDEU. Você colocou um valor (PV) e tirou outro maior (FV). A diferença entre esses dois valores é...",hp:"Na HP 12C:\n\n3720 [ENTER] 3000 [−]\n→ Display: 720,00\n\nSimples subtração: FV − PV = J"},
+{q:"Qual a diferença entre PV e FV?",o:["PV = valor hoje, FV = valor no futuro","PV = parcela, FV = financiamento","São a mesma coisa em datas diferentes","PV = juros, FV = montante"],c:0,wf:{1:"PV não é parcela. PV = Present Value = valor no presente. FV = Future Value = valor no futuro. PMT que é parcela.",2:"Quase! São o MESMO capital em momentos diferentes, mas não 'a mesma coisa' — FV inclui os juros acumulados.",3:"PV não é juros. PV = capital inicial. FV = capital + juros. Os juros são J = FV − PV."},rf:"PV (Present Value) = capital no presente. FV (Future Value) = montante no futuro. A diferença entre eles são os juros: J = FV − PV.",st:"PV = Present Value = valor HOJE\nFV = Future Value = valor no FUTURO\nJ = FV − PV (juros = a diferença)\nFV = PV + J (montante = capital + juros)\n\nNa HP 12C, cada uma é uma tecla:\n[PV] [FV] [n] [i] [PMT]",ht:"P vem de 'Present' (presente). F vem de 'Future' (futuro). O que essas palavras significam?",hp:"Na HP 12C, as teclas financeiras:\n\n[PV]  → armazena/calcula valor presente\n[FV]  → armazena/calcula valor futuro\n[n]   → número de períodos\n[i]   → taxa por período\n[PMT] → pagamento periódico\n\nDigite o valor e pressione a tecla\npra armazenar. Pressione sem digitar\nnada pra calcular."},
+{q:"5% ao mês em formato decimal é:",o:["0,05","0,5","5,0","0,005"],c:0,wf:{1:"0,5 = 50%, não 5%. Para converter porcentagem em decimal: divida por 100. 5 ÷ 100 = 0,05.",2:"5,0 = 500%! Para converter % → decimal: divide por 100. 5 ÷ 100 = 0,05.",3:"0,005 = 0,5%. Você dividiu por 1.000 em vez de 100. A regra é sempre dividir por 100."},rf:"5% ÷ 100 = 0,05. Regra: para converter % em decimal, SEMPRE divida por 100.",st:"% → decimal: divide por 100\n\n5% = 5 ÷ 100 = 0,05\n\nOutros exemplos:\n8% = 0,08\n2,5% = 0,025\n0,3% = 0,003\n150% = 1,50\n\n⚠️ Na HP 12C, quando você digita\na taxa na tecla [i], NÃO precisa\nconverter — ela aceita em %!",ht:"Qual operação com o número 100 transforma uma porcentagem em decimal?",hp:"Na HP 12C:\n\n5 [ENTER] 100 [÷]\n→ Display: 0,05\n\nMAS: quando usar a tecla [i],\ndigite 5 direto (não 0,05).\nA HP converte automaticamente!"},
+{q:"R$7.000 aplicados a 2,5% a.m. por 10 meses (juros simples). Qual o montante?",o:["R$8.750,00","R$7.175,00","R$8.925,00","R$9.100,00"],c:0,wf:{1:"Você provavelmente calculou só 1 mês de juros (7.000 × 0,025 = 175). Precisa multiplicar pelo prazo: 0,025 × 10 = 0,25.",2:"Verifique a multiplicação. i×n = 0,025 × 10 = 0,25. FV = 7.000 × 1,25 = 8.750.",3:"Confira: i×n = 0,025×10 = 0,25, não 0,30. FV = 7.000 × 1,25 (não 1,30)."},rf:"FV = 7.000 × (1 + 0,025 × 10) = 7.000 × 1,25 = R$8.750,00",st:"1️⃣ PV=7.000 | i=2,5%=0,025 | n=10\n\n2️⃣ FV = PV × (1 + i × n)\n   FV = 7.000 × (1 + 0,025 × 10)\n\n3️⃣ Dentro dos parênteses:\n   0,025 × 10 = 0,25\n   1 + 0,25 = 1,25\n\n4️⃣ 7.000 × 1,25 = R$ 8.750,00",ht:"Monte a fórmula FV = PV × (1 + i × n). Primeiro resolva o que está dentro dos parênteses: i × n = 0,025 × 10 = ?",hp:"Na HP 12C (juros simples):\n\n[f] [CLx]\n7000 [CHS] [PV]\n2.5 [ENTER] 12 [×] [i]  → 30% a.a.\n300 [n]                  → 10×30 dias\n[f] [INT]                → J = 1.750\n[+]                      → total = 8.750,00"},
+{q:"Se J = PV × i × n, e você quer achar o prazo (n), como isola a fórmula?",o:["n = J / (PV × i)","n = PV × i / J","n = J × PV × i","n = (PV × i) − J"],c:0,wf:{1:"Inverteu! Se J = PV × i × n, dividimos os dois lados por (PV × i): n = J / (PV × i).",2:"Multiplicar tudo junto dá um número enorme. Isolar uma variável em multiplicação = dividir pelos outros termos.",3:"Subtração não isola variáveis em multiplicação. Usa divisão: n = J / (PV × i)."},rf:"J = PV × i × n → n = J / (PV × i). Para isolar uma variável, divide pelos outros termos.",st:"J = PV × i × n\n\nDividindo ambos lados por (PV × i):\nJ / (PV × i) = n\n\n∴ n = J / (PV × i)\n\n💡 Mesma lógica pra isolar qualquer variável:\ni = J / (PV × n)\nPV = J / (i × n)",ht:"Se A = B × C × D, e você quer D sozinho, o que faz com B e C? Pense em 'passar pro outro lado'...",hp:"Exemplo: J=600, PV=5.000, i=0,03\n\nNa HP 12C:\n600 [ENTER]\n5000 [ENTER] 0.03 [×]\n[÷]\n→ Display: 4,00 (= 4 meses)"},
+{q:"R$12.000 renderam R$2.160 de juros a 3% a.m. Por quantos meses ficou aplicado?",o:["6 meses","3 meses","9 meses","12 meses"],c:0,wf:{1:"Se fosse 3 meses: J = 12.000 × 0,03 × 3 = 1.080. Mas os juros foram 2.160, o DOBRO. Logo o prazo é o dobro: 6 meses.",2:"Se fosse 9 meses: J = 12.000 × 0,03 × 9 = 3.240. Acima de 2.160. Calcule: n = 2.160 / (12.000 × 0,03).",3:"Se fosse 12 meses: J = 12.000 × 0,03 × 12 = 4.320. Muito acima. n = 2.160 / 360 = 6."},rf:"n = J/(PV×i) = 2.160/(12.000×0,03) = 2.160/360 = 6 meses.",st:"1️⃣ PV=12.000 | J=2.160 | i=0,03 | n=?\n\n2️⃣ n = J / (PV × i)\n\n3️⃣ Denominador: 12.000 × 0,03 = 360\n\n4️⃣ n = 2.160 / 360 = 6 meses",ht:"Use n = J / (PV × i). Primeiro calcule o denominador: PV × i = 12.000 × 0,03 = ? Depois divida J por esse resultado.",hp:"Na HP 12C:\n\n2160 [ENTER]\n12000 [ENTER] 0.03 [×]\n[÷]\n→ Display: 6,00 (meses)"}
+],2:[
+{q:"R$4.000 a juros simples de 6% a.m. por 5 meses. Qual o montante?",o:["R$5.200,00","R$4.240,00","R$5.352,90","R$4.120,00"],c:0,wf:{1:"Você calculou i × n como 0,06 × 1 = 0,06, usando n=1 em vez de n=5. O prazo é 5 meses!",2:"Esse é o resultado de juros COMPOSTOS: FV = 4.000 × (1,06)⁵. Aqui é juros SIMPLES.",3:"Verifique: 0,06 × 5 = 0,30, não 0,03. FV = 4.000 × 1,30 = 5.200."},rf:"FV = 4.000 × (1 + 0,06 × 5) = 4.000 × 1,30 = R$5.200,00",st:"1️⃣ PV=4.000 | i=0,06 | n=5\n2️⃣ FV = 4.000 × (1 + 0,06 × 5)\n3️⃣ 0,06 × 5 = 0,30\n4️⃣ 1 + 0,30 = 1,30\n5️⃣ 4.000 × 1,30 = R$ 5.200,00",ht:"Calcule i × n primeiro: 0,06 × 5 = ? Depois some 1. Depois multiplique pelo PV.",hp:"[f] [CLx]\n4000 [CHS] [PV]\n6 [ENTER] 12 [×] [i] → 72% a.a.\n150 [n]               → 5×30 dias\n[f] [INT] [+]\n→ Display: 5.200,00"},
+{q:"Investimento de R$6.000 a 2% a.m. gerou R$720 de juros simples. Por quantos meses ficou aplicado?",o:["6 meses","3 meses","12 meses","36 meses"],c:0,wf:{1:"Se 3 meses: J = 6.000 × 0,02 × 3 = 360. Juros foram 720 (o dobro) → precisa do dobro do tempo.",2:"12 meses: J = 6.000 × 0,02 × 12 = 1.440. Muito mais que 720.",3:"36 meses: J = 6.000 × 0,02 × 36 = 4.320. Muito acima."},rf:"n = 720/(6.000×0,02) = 720/120 = 6 meses.",st:"1️⃣ PV=6.000 | i=0,02 | J=720 | n=?\n2️⃣ n = J / (PV × i)\n3️⃣ 6.000 × 0,02 = 120\n4️⃣ 720 / 120 = 6 meses",ht:"Isole n: n = J / (PV × i). Quanto é 6.000 × 0,02? Com esse número, divida os juros totais.",hp:"720 [ENTER]\n6000 [ENTER] 0.02 [×]\n[÷]\n→ Display: 6,00 (meses)"},
+{q:"Taxa de 24% ao ano em juros simples. Qual a taxa mensal equivalente?",o:["2% a.m.","0,2% a.m.","24% a.m.","12% a.m."],c:0,wf:{1:"Você dividiu 24 por 120 em vez de 12. Em juros simples, a conversão é proporcional simples: 24% ÷ 12 meses = 2%.",2:"Não converteu! 24% ao ANO não é a mesma coisa que 24% ao MÊS. Precisa dividir pelos meses.",3:"24 ÷ 2 = 12? A divisão é por 12 (meses no ano), não por 2."},rf:"Em juros simples: i mensal = i anual / 12 = 24% / 12 = 2% a.m.",st:"Juros simples → conversão proporcional\ni mensal = i anual / 12\n= 24% / 12\n= 2% a.m.\n\n⚠️ Em juros COMPOSTOS essa conta NÃO funciona!\nLá precisa de taxa equivalente.",ht:"Em juros simples, a conversão é proporcional (divisão simples). Quantos meses tem 1 ano?",hp:"Na HP 12C:\n24 [ENTER] 12 [÷]\n→ Display: 2,00 (% a.m.)\n\nEm juros simples: proporcional.\nEm compostos usaria:\n24 [ENTER] 100 [÷] 1 [+]\n12 [1/x] [yˣ] 1 [-] 100 [×]"},
+{q:"Em juros simples, os juros de cada período são calculados sobre:",o:["O capital inicial (PV)","O montante acumulado","Os juros do período anterior","A taxa de inflação"],c:0,wf:{1:"Sobre o montante acumulado é juros COMPOSTOS. Em juros SIMPLES: sempre sobre o capital ORIGINAL. Nunca muda.",2:"Juros sobre juros = juros compostos. Em simples, a base é sempre o PV original.",3:"Inflação é um conceito separado. Juros simples: base = capital inicial, sempre."},rf:"Regra de ouro do juros simples: juros SEMPRE calculados sobre o capital inicial (PV). Nunca muda. Crescimento linear.",st:"Juros Simples:\nMês 1: J calculado sobre PV\nMês 2: J calculado sobre PV (não PV+J₁)\nMês 3: J calculado sobre PV\n→ Crescimento LINEAR\n\nJuros Compostos (módulo 4):\nMês 1: J sobre PV\nMês 2: J sobre PV+J₁\nMês 3: J sobre PV+J₁+J₂\n→ Crescimento EXPONENCIAL",ht:"A palavra 'simples' é a própria dica. Se fosse calculado sobre o valor acumulado, seria algo mais... complexo. Qual a diferença fundamental entre simples e compostos?",hp:"Na HP 12C:\n[f] [INT] calcula juros simples.\nA base é SEMPRE o valor em [PV].\n\nPara juros compostos, usaria\nas teclas TVM padrão ([FV], [n], [i])."},
+{q:"R$5.000 divididos em 2 bancos. Banco A: 3% a.m. por 4 meses. Banco B: 5% a.m. por 6 meses. Juros total: R$1.140. Quanto foi pro Banco A?",o:["R$2.000","R$3.000","R$2.500","R$4.000"],c:0,wf:{1:"Se x=3.000: J₁=3.000×0,03×4=360, J₂=2.000×0,05×6=600, total=960≠1.140.",2:"Se x=2.500: J₁=2.500×0,03×4=300, J₂=2.500×0,05×6=750, total=1.050≠1.140.",3:"Se x=4.000: J₁=4.000×0,03×4=480, J₂=1.000×0,05×6=300, total=780≠1.140."},rf:"0,12x + 1.500 − 0,30x = 1.140 → −0,18x = −360 → x = R$2.000.",st:"Seja x = capital no Banco A\n\nJ₁ = x × 0,03 × 4 = 0,12x\nJ₂ = (5.000−x) × 0,05 × 6\n   = 1.500 − 0,30x\n\nSomando:\n0,12x + 1.500 − 0,30x = 1.140\n−0,18x = 1.140 − 1.500\n−0,18x = −360\nx = 2.000\n\n✅ Banco A: R$2.000 | Banco B: R$3.000\nProva: 240 + 900 = 1.140 ✓",ht:"Chame de 'x' o que foi pro Banco A. Então o Banco B recebeu '5.000 − x'. Escreva J₁ e J₂ separados e some: J₁ + J₂ = 1.140.",hp:"Sistema de equação — resolva na mão.\nPra conferir na HP 12C:\n\n2000 [ENTER] 0.12 [×] → 240\n3000 [ENTER] 0.30 [×] → 900\n[+] → 1.140 ✓"},
+{q:"R$8.000 aplicados por 90 dias a 4% a.m. (juros comerciais). Qual o montante?",o:["R$8.960,00","R$8.320,00","R$9.280,00","R$8.986,67"],c:0,wf:{1:"n=90/30=3 meses, não 1. FV = 8.000 × (1 + 0,04 × 3) = 8.000 × 1,12 = 8.960.",2:"Verifique: 0,04 × 3 = 0,12, não 0,16. FV = 8.000 × 1,12.",3:"Você usou n=90/365? Juros COMERCIAIS usam mês de 30 dias: 90/30 = 3 meses exatos."},rf:"Juros comerciais: n = 90/30 = 3 meses. FV = 8.000 × (1 + 0,04 × 3) = 8.000 × 1,12 = R$8.960,00.",st:"Juros comerciais → mês = 30 dias\n\n1️⃣ n = 90 / 30 = 3 meses\n2️⃣ FV = 8.000 × (1 + 0,04 × 3)\n3️⃣ = 8.000 × (1 + 0,12)\n4️⃣ = 8.000 × 1,12\n5️⃣ = R$ 8.960,00",ht:"'Comercial' significa mês de 30 dias. Quantos meses de 30 dias cabem em 90 dias? Com esse n, aplique a fórmula normalmente.",hp:"[f] [CLx]\n8000 [CHS] [PV]\n4 [ENTER] 12 [×] [i] → 48% a.a.\n90 [n]                → em dias\n[f] [INT]             → J = 960\n[+]                   → 8.960,00\n\n[f][INT] sempre usa base 360 (comercial)"},
+{q:"Qual a diferença entre juros comerciais e exatos?",o:["Comerciais usam ano de 360 dias, exatos usam 365","Comerciais são mais baratos","Exatos só valem pra juros compostos","Não há diferença prática"],c:0,wf:{1:"Comerciais geralmente resultam em MAIS juros (denominador menor = fração maior).",2:"Exatos funcionam tanto em juros simples quanto compostos. A diferença é só o denominador.",3:"Há diferença sim! Com 360 dias: 1 mês = 30 dias. Com 365: 1 mês ≈ 30,42 dias."},rf:"Comerciais: ano = 360 dias (mês = 30 dias). Exatos: ano = 365 dias. Comerciais são mais usados em operações bancárias no Brasil.",st:"COMERCIAL (bancário):\nAno = 360 dias | Mês = 30 dias\n\nEXATO:\nAno = 365 dias | Mês = real\n\nExemplo: 45 dias\nComercial: 45/30 = 1,5 meses\nExato: 45/365 = 0,1233 anos\n\nComercial → denominador menor → mais juros",ht:"Pense nos dias do ano. Um usa o calendário real (365 dias), o outro 'arredonda' pra um número mais fácil de dividir. Qual arredonda?",hp:"Na HP 12C:\n[f] [INT] → juros base 360 (comercial)\n[R↓]      → mostra juros base 365 (exato)\n[+]       → soma ao PV pra ter o montante\n\nA calculadora calcula os DOIS!\nPrimeiro mostra 360, depois R↓ mostra 365."},
+{q:"R$15.000 aplicados. Após 7 meses, montante = R$18.150. Qual a taxa mensal?",o:["3% a.m.","2,1% a.m.","4,5% a.m.","21% a.m."],c:0,wf:{1:"J = 18.150−15.000 = 3.150. i = 3.150/(15.000×7). Cuidado: 15.000×7 = 105.000, não 150.000.",2:"15.000 × 7 = 105.000 (não 70.000). i = 3.150/105.000 = 0,03 = 3%.",3:"21% = J/PV (3.150/15.000) sem dividir pelo prazo. Falta ÷ n!"},rf:"J=18.150−15.000=3.150. i = 3.150/(15.000×7) = 3.150/105.000 = 0,03 = 3% a.m.",st:"1️⃣ J = FV − PV = 18.150 − 15.000 = 3.150\n\n2️⃣ i = J / (PV × n)\n   = 3.150 / (15.000 × 7)\n   = 3.150 / 105.000\n   = 0,03\n\n3️⃣ 0,03 × 100 = 3% a.m.",ht:"Primeiro ache J (montante − capital). Depois use i = J / (PV × n). Cuidado pra não esquecer de multiplicar PV pelo prazo no denominador!",hp:"Na HP 12C:\n\n18150 [ENTER] 15000 [−]  → 3.150\n[ENTER]\n15000 [ENTER] 7 [×]      → 105.000\n[÷] 100 [×]\n→ Display: 3,00 (% a.m.)"},
+{q:"R$20.000 aplicados a 1,5% a.m. pelo prazo de 1 ano. Qual o total de juros simples?",o:["R$3.600,00","R$300,00","R$3.942,44","R$360,00"],c:0,wf:{1:"Calculou só 1 mês (20.000 × 0,015 = 300). Precisa multiplicar por 12 meses!",2:"Esse seria o resultado de juros compostos. Em simples: J = PV × i × n.",3:"n = 12 meses (1 ano), não 1,2. Verifique a conversão do prazo."},rf:"1 ano = 12 meses. J = 20.000 × 0,015 × 12 = R$3.600,00.",st:"1️⃣ Converter prazo: 1 ano = 12 meses\n   (taxa é mensal → prazo em meses)\n\n2️⃣ J = PV × i × n\n   = 20.000 × 0,015 × 12\n   = 20.000 × 0,18\n   = R$ 3.600,00",ht:"Cuidado com as unidades! A taxa é mensal mas o prazo é '1 ano'. Converta o prazo primeiro. Depois aplique J = PV × i × n.",hp:"[f] [CLx]\n20000 [CHS] [PV]\n1.5 [ENTER] 12 [×] [i] → 18% a.a.\n360 [n]                → 12×30 dias\n[f] [INT]\n→ Display: 3.600,00"}
+]};
 
-const questionBanks = {
-  1: [
-    { q: "Você investiu R$2.000 a 4% ao mês por 5 meses (juros simples). Qual o montante?", options: ["R$2.400,00", "R$2.433,31", "R$2.800,00", "R$2.040,00"], correct: 0, wrongFeedback: { 1: "Esse resultado seria juros COMPOSTOS. Aqui é SIMPLES: FV = PV × (1 + i × n).", 2: "Você usou 0,4 em vez de 0,04. Regra: 4% ÷ 100 = 0,04.", 3: "Calculou só 1 mês. Multiplique pelo prazo: 0,04 × 5 = 0,20." }, rightFeedback: "FV = 2.000 × (1 + 0,04 × 5) = 2.000 × 1,20 = R$2.400,00", steps: "PV=2.000 | i=0,04 | n=5\nFV = 2.000 × (1 + 0,04 × 5)\n= 2.000 × 1,20\n= R$ 2.400,00" },
-    { q: "Capital de R$10.000 rendeu R$1.800 de juros simples em 6 meses. Taxa mensal?", options: ["3% a.m.", "1,8% a.m.", "18% a.m.", "0,3% a.m."], correct: 0, wrongFeedback: { 1: "Dividiu J/PV mas é taxa acumulada. Falta ÷ prazo: 0,18 ÷ 6 = 0,03.", 2: "0,18 é taxa de 6 meses. Mensal: 0,18 ÷ 6 = 3%.", 3: "0,03 decimal = 3% (×100). Cuidado na conversão." }, rightFeedback: "i = 1.800/(10.000×6) = 0,03 = 3% a.m.", steps: "i = J / (PV × n)\n= 1.800 / (10.000 × 6)\n= 1.800 / 60.000\n= 0,03 = 3% a.m." },
-    { q: "R$100 hoje valem o mesmo que R$100 daqui a 1 ano?", options: ["Não, R$100 hoje valem MAIS", "Sim, é o mesmo valor", "R$100 no futuro valem MAIS", "Depende só da inflação"], correct: 0, wrongFeedback: { 1: "O número é igual, mas o VALOR REAL não. R$100 investidos viram mais.", 2: "Ao contrário! Dinheiro presente vale mais pelo custo de oportunidade.", 3: "Inflação é UM fator. Mesmo com inflação zero há custo de oportunidade." }, rightFeedback: "R$100 hoje > R$100 amanhã: pode investir, inflação corrói, e há risco futuro.", steps: "Dinheiro tem VALOR NO TEMPO:\n1) Oportunidade de investir\n2) Inflação\n3) Risco\n∴ R$100 hoje > R$100 amanhã" },
-    { q: "Taxa 5% a.m. e prazo 2 anos. O que fazer antes de calcular?", options: ["Converter prazo: n = 24 meses", "Nada, aplicar direto", "Converter taxa: 60% a.a.", "Dividir taxa por 2"], correct: 0, wrongFeedback: { 1: "Misturar meses com anos dá erro! Taxa e prazo na mesma unidade.", 2: "Funciona em simples, mas cria mau hábito. Converta o prazo.", 3: "Dividir por 2? 2 anos × 12 = 24 meses." }, rightFeedback: "Taxa mensal → prazo em meses: 2 × 12 = 24.", steps: "Taxa: 5% a.m. → MESES\nPrazo: 2 anos → converter\n2 × 12 = 24 meses ✓" },
-    { q: "R$3.000 aplicados, montante R$3.720. Qual o juro?", options: ["R$720", "R$3.720", "R$6.720", "R$3.000"], correct: 0, wrongFeedback: { 1: "R$3.720 é MONTANTE, não juros. J = FV − PV.", 2: "SOMOU. Juros = DIFERENÇA: 3.720 − 3.000.", 3: "R$3.000 é capital. Juros = montante − capital." }, rightFeedback: "J = FV − PV = 3.720 − 3.000 = R$720.", steps: "J = FV − PV\n= 3.720 − 3.000\n= R$ 720" },
-    { q: "PV e FV: qual a diferença?", options: ["PV = valor hoje, FV = valor futuro", "PV = parcela, FV = financiamento", "São iguais", "PV = juros, FV = montante"], correct: 0, wrongFeedback: { 1: "PV não é parcela. PV = Present Value.", 2: "FV inclui juros. Não são iguais.", 3: "PV = capital inicial. J = FV − PV." }, rightFeedback: "PV = valor presente. FV = valor futuro. J = FV − PV.", steps: "PV = HOJE\nFV = FUTURO\nJ = FV − PV\nFV = PV + J" },
-    { q: "5% ao mês em decimal:", options: ["0,05", "0,5", "5,0", "0,005"], correct: 0, wrongFeedback: { 1: "0,5 = 50%. Divida por 100.", 2: "5,0 = 500%. % ÷ 100.", 3: "0,005 = 0,5%. Dividiu por 1.000." }, rightFeedback: "5% ÷ 100 = 0,05.", steps: "% → decimal: ÷ 100\n5% = 0,05\n8% = 0,08" },
-    { q: "R$7.000 a 2,5% a.m. por 10 meses. Montante?", options: ["R$8.750", "R$7.175", "R$8.925", "R$9.100"], correct: 0, wrongFeedback: { 1: "Calculou só 1 mês. i×n = 0,025 × 10 = 0,25.", 2: "0,025 × 10 = 0,25. FV = 7.000 × 1,25.", 3: "i×n = 0,25 (não 0,30)." }, rightFeedback: "FV = 7.000 × 1,25 = R$8.750.", steps: "FV = 7.000 × (1 + 0,025 × 10)\n= 7.000 × 1,25\n= R$ 8.750" },
-    { q: "J = PV × i × n. Como isolar n?", options: ["n = J / (PV × i)", "n = PV × i / J", "n = J × PV × i", "n = (PV×i) − J"], correct: 0, wrongFeedback: { 1: "Inverteu! n = J / (PV × i).", 2: "Multiplicar tudo? Isolar = dividir.", 3: "Subtração não isola multiplicação." }, rightFeedback: "n = J / (PV × i).", steps: "J = PV × i × n\nn = J / (PV × i)" },
-    { q: "R$12.000 renderam R$2.160 a 3% a.m. Prazo?", options: ["6 meses", "3 meses", "9 meses", "12 meses"], correct: 0, wrongFeedback: { 1: "3 meses: J=1.080 (metade). Prazo = dobro.", 2: "9 meses: J=3.240. n = 2.160/360 = 6.", 3: "12 meses: J=4.320. n = 2.160/360 = 6." }, rightFeedback: "n = 2.160/360 = 6 meses.", steps: "n = 2.160 / (12.000 × 0,03)\n= 2.160 / 360 = 6 meses" }
-  ],
-  2: [
-    { q: "R$4.000 a 6% a.m. por 5 meses. Montante?", options: ["R$5.200", "R$4.240", "R$5.353", "R$4.120"], correct: 0, wrongFeedback: { 1: "Usou n=1. Prazo=5: 0,06×5=0,30.", 2: "Juros compostos. Simples: 4.000×1,30.", 3: "0,06×5=0,30 (não 0,03)." }, rightFeedback: "FV = 4.000 × 1,30 = R$5.200.", steps: "FV = 4.000 × (1 + 0,06 × 5)\n= 4.000 × 1,30 = R$ 5.200" },
-    { q: "R$6.000 a 2% a.m. rendeu R$720. Prazo?", options: ["6 meses", "3 meses", "12 meses", "36 meses"], correct: 0, wrongFeedback: { 1: "3 meses: J=360 (metade). Prazo=dobro.", 2: "12 meses: J=1.440. n=720/120=6.", 3: "36 meses: J=4.320." }, rightFeedback: "n = 720/120 = 6 meses.", steps: "n = 720 / (6.000 × 0,02)\n= 720 / 120 = 6 meses" },
-    { q: "24% a.a. em juros simples. Taxa mensal?", options: ["2% a.m.", "0,2% a.m.", "24% a.m.", "12% a.m."], correct: 0, wrongFeedback: { 1: "24÷120≠certo. 24/12=2%.", 2: "24%a.a.≠24%a.m. Divide por 12.", 3: "24/2=12? Não. 24/12=2." }, rightFeedback: "24%/12 = 2% a.m.", steps: "i mensal = 24% / 12 = 2% a.m." },
-    { q: "Em juros simples, juros incidem sobre:", options: ["Capital inicial (PV)", "Montante acumulado", "Juros anteriores", "Inflação"], correct: 0, wrongFeedback: { 1: "Sobre montante = COMPOSTOS.", 2: "Juros sobre juros = compostos.", 3: "Inflação é separada." }, rightFeedback: "Sempre sobre o capital inicial. Linear.", steps: "Mês 1: J sobre PV\nMês 2: J sobre PV\n→ LINEAR" },
-    { q: "R$5.000 em 2 bancos. A:3%,4m. B:5%,6m. Jtotal=1.140. Banco A?", options: ["R$2.000", "R$3.000", "R$2.500", "R$4.000"], correct: 0, wrongFeedback: { 1: "x=3.000: total=960≠1.140.", 2: "x=2.500: total=1.050≠1.140.", 3: "x=4.000: total=780≠1.140." }, rightFeedback: "−0,18x=−360 → x=2.000.", steps: "J₁=0,12x | J₂=1.500−0,30x\n−0,18x=−360\nx=R$ 2.000" },
-    { q: "R$8.000 por 90 dias a 4% a.m. (comercial). Montante?", options: ["R$8.960", "R$8.320", "R$9.280", "R$8.987"], correct: 0, wrongFeedback: { 1: "n=90/30=3, não 1.", 2: "0,04×3=0,12 (não 0,16).", 3: "Comercial: 90/30=3 exato." }, rightFeedback: "n=3. FV=8.000×1,12=R$8.960.", steps: "n=90/30=3\nFV=8.000×1,12=R$8.960" },
-    { q: "Diferença entre juros comerciais e exatos?", options: ["Comerciais: 360 dias; exatos: 365", "Comerciais mais baratos", "Exatos só pra compostos", "Nenhuma"], correct: 0, wrongFeedback: { 1: "Comerciais dão MAIS juros.", 2: "Exatos funcionam em ambos.", 3: "Muda o denominador." }, rightFeedback: "Comercial: 360 dias. Exato: 365. Comercial é padrão bancário.", steps: "Comercial: ano=360, mês=30\nExato: ano=365" },
-    { q: "R$15.000, montante R$18.150 após 7 meses. Taxa?", options: ["3% a.m.", "2,1% a.m.", "4,5% a.m.", "21% a.m."], correct: 0, wrongFeedback: { 1: "i=3.150/105.000=0,03=3%.", 2: "15.000×7=105.000 (não 70.000).", 3: "21%=J/PV sem ÷ prazo." }, rightFeedback: "J=3.150. i=3.150/105.000=3%.", steps: "J=18.150−15.000=3.150\ni=3.150/(15.000×7)=3%" },
-    { q: "R$20.000 a 1,5% a.m. por 1 ano. Juros totais?", options: ["R$3.600", "R$300", "R$3.942", "R$360"], correct: 0, wrongFeedback: { 1: "1 mês só. Precisa ×12.", 2: "Compostos. Simples: PV×i×n.", 3: "n=12 meses, não 1,2." }, rightFeedback: "J = 20.000 × 0,015 × 12 = R$3.600.", steps: "n=12 meses\nJ=20.000×0,015×12=R$3.600" }
-  ]
-};
-
-const modules = [
-  { id:1, title:"Fundamentos", subtitle:"O dinheiro no tempo", emoji:"🧱",
-    lesson: [
-      { type:"analogy", title:"Primeiro, uma analogia", content:"Imagine que dinheiro é como gelo num dia quente. Se deixa R$100 parado (inflação), derrete.\n\nMatFin é a ciência de:\n• Medir a velocidade do derretimento (taxa)\n• Fazer o gelo crescer mais rápido (investir)\n• Comparar blocos de gelo em momentos diferentes" },
-      { type:"concept", title:"O princípio fundamental", content:"A base de TUDO:\n\n✦ R$100 HOJE valem mais que R$100 AMANHÃ ✦\n\nPor quê? R$100 investidos hoje viram MAIS amanhã.\n\nIsso é o 'valor do dinheiro no tempo'." },
-      { type:"vocabulary", title:"Vocabulário essencial", content:"🟡 PV = CAPITAL = valor HOJE\n🟡 FV = MONTANTE = valor FUTURO\n🟡 J = JUROS = FV − PV\n🟡 i = TAXA (decimal: 8% = 0,08)\n🟡 n = PRAZO\n\n⚠️ REGRA DE OURO: i e n na mesma unidade!\nTaxa mensal → prazo em MESES" },
-      { type:"formula", title:"As fórmulas", content:"┌──────────────────────────────┐\n│  J = PV × i × n             │\n│  FV = PV × (1 + i × n)      │\n│  PV = FV / (1 + i × n)      │\n│  i = J / (PV × n)           │\n│  n = J / (PV × i)           │\n└──────────────────────────────┘\n\nA MESMA fórmula rearranjada." },
-      { type:"example", title:"Exemplo resolvido", content:"📝 R$5.000 a 3% a.m., 4 meses:\n\nFV = 5.000 × (1 + 0,03 × 4)\nFV = 5.000 × 1,12\nFV = R$ 5.600\n\n✅ J = 5.600 − 5.000 = 600 ✓" },
-      { type:"example", title:"Exemplo 2 — achar taxa", content:"📝 PV=8.000, J=960, n=6:\n\n960 = 8.000 × i × 6\ni = 960 / 48.000\ni = 0,02 = 2% a.m. ✓" }
-    ]
-  },
-  { id:2, title:"Juros Simples", subtitle:"A base de tudo", emoji:"📏",
-    lesson: [
-      { type:"analogy", title:"Analogia: Salário fixo", content:"Juros simples = salário fixo.\n\nEmprestou R$10.000: recebe R$200/mês.\nSempre igual. Juros sobre o ORIGINAL.\nCrescimento LINEAR — degraus iguais." },
-      { type:"concept", title:"Regra central", content:"Juros SEMPRE sobre o CAPITAL INICIAL.\n\nMês 1: J sobre PV\nMês 2: J sobre PV (NÃO PV+J₁)\n\n= LINHA RETA\n\nEm compostos: sobre acumulado = CURVA." },
-      { type:"formula", title:"Fórmulas + Conversão", content:"┌──────────────────────────────┐\n│  FV = PV × (1 + i × n)      │\n│  J = PV × i × n             │\n└──────────────────────────────┘\n\nCONVERSÃO (proporcional):\nAnual→Mensal: ÷12\nMensal→Diária: ÷30\n\n⚠️ Em compostos NÃO funciona!" },
-      { type:"example", title:"Exemplo: Questão 22!", content:"📝 R$3.000, B1:8%,6m. B2:10%,8m. J=1.824\n\nJ₁ = x×0,08×6 = 0,48x\nJ₂ = (3.000−x)×0,80 = 2.400−0,80x\n\n0,48x + 2.400 − 0,80x = 1.824\n−0,32x = −576 → x = 1.800\n\n✅ B1:R$1.800 | B2:R$1.200" }
-    ]
-  }
+const mods=[
+{id:1,title:"Fundamentos",subtitle:"O dinheiro no tempo",
+ls:[
+{t:"analogy",ti:"Primeiro, uma analogia",ct:"Imagine que dinheiro é como gelo num dia quente. Se você deixa R$100 parado debaixo do sol (inflação), ele vai derretendo — daqui a 1 ano, aquele gelo que era 100g agora pesa 90g. Ele ainda existe, mas compra menos coisas.\n\nMatemática Financeira é a ciência de:\n• Medir a velocidade do derretimento (taxa de juros / inflação)\n• Fazer o gelo crescer mais rápido do que derrete (investimentos)\n• Comparar blocos de gelo em momentos diferentes (valor do dinheiro no tempo)"},
+{t:"concept",ti:"O princípio fundamental",ct:"A base de TUDO em Matemática Financeira é uma única ideia:\n\n✦ R$100 HOJE valem mais do que R$100 AMANHÃ ✦\n\nPor quê? Porque se você tem R$100 hoje, pode investir e ter MAIS do que R$100 amanhã. Receber R$100 só daqui a 1 ano significa que você PERDEU a oportunidade de fazer esse dinheiro crescer.\n\nIsso se chama 'valor do dinheiro no tempo' — e é o alicerce de toda fórmula que você vai aprender neste curso."},
+{t:"vocabulary",ti:"O vocabulário essencial (decore isso!)",ct:"Existem 5 variáveis que aparecem em TODA fórmula. Pense nelas como os 5 dedos da mão:\n\n🟡 PV (Present Value) = CAPITAL = valor HOJE = quanto você tem/investe agora\n\n🟡 FV (Future Value) = MONTANTE = valor no FUTURO = quanto vai virar depois\n\n🟡 J = JUROS = a diferença entre FV e PV = quanto o dinheiro 'rendeu'\n\n🟡 i = TAXA = a velocidade do crescimento (sempre converter pra decimal!)\n   → 8% = 8 ÷ 100 = 0,08\n   → 2,5% = 2,5 ÷ 100 = 0,025\n\n🟡 n = PRAZO = por quanto tempo o dinheiro fica aplicado\n\n⚠️ REGRA DE OURO: A taxa (i) e o prazo (n) SEMPRE precisam estar na mesma unidade!\n   → Taxa mensal (a.m.) → prazo em MESES\n   → Taxa anual (a.a.) → prazo em ANOS\n   → Se não estiverem, você PRECISA converter antes de calcular."},
+{t:"formula",ti:"As 3 fórmulas deste módulo",ct:"Todas se derivam da mesma lógica:\n\n┌─────────────────────────────────────┐\n│  JUROS:    J = PV × i × n          │\n│  MONTANTE: FV = PV + J             │\n│  ou seja:  FV = PV × (1 + i × n)   │\n└─────────────────────────────────────┘\n\nEssas 3 fórmulas são a MESMA coisa escrita de formas diferentes. Se você sabe uma, sabe as três:\n\n• Se quer achar os JUROS → J = PV × i × n\n• Se quer achar o MONTANTE → FV = PV × (1 + i × n)\n• Se quer achar o CAPITAL → PV = FV / (1 + i × n)\n• Se quer achar a TAXA → i = J / (PV × n)\n• Se quer achar o PRAZO → n = J / (PV × i)"},
+{t:"example",ti:"Exemplo resolvido — passo a passo",ct:"📝 Você investiu R$5.000 a 3% ao mês por 4 meses. Qual o montante?\n\nIdentificando os dados:\nPV = 5.000\ni = 3% a.m. = 0,03\nn = 4 meses\nFV = ?\n\nAplicando a fórmula:\nFV = PV × (1 + i × n)\nFV = 5.000 × (1 + 0,03 × 4)\nFV = 5.000 × (1 + 0,12)\nFV = 5.000 × 1,12\nFV = R$ 5.600,00\n\n✅ Conferindo: J = 5.600 − 5.000 = R$600\nOu: J = 5.000 × 0,03 × 4 = R$600 ✓"},
+{t:"example",ti:"Exemplo 2 — achando a taxa",ct:"📝 Um capital de R$8.000 gerou R$960 de juros em 6 meses. Qual a taxa mensal?\n\nIdentificando:\nPV = 8.000 | J = 960 | n = 6 | i = ?\n\nAplicando (isolando i):\nJ = PV × i × n\n960 = 8.000 × i × 6\n960 = 48.000 × i\ni = 960 / 48.000\ni = 0,02\ni = 2% a.m.\n\n✅ Conferindo: J = 8.000 × 0,02 × 6 = 960 ✓"}
+]},
+{id:2,title:"Juros Simples",subtitle:"A base de tudo",
+ls:[
+{t:"analogy",ti:"Analogia: O salário fixo",ct:"Juros simples é como um salário fixo.\n\nVocê empresta R$10.000 pro banco (investimento). O banco te paga um 'salário' todo mês por usar seu dinheiro — digamos R$200/mês.\n\nMês 1: recebe R$200\nMês 2: recebe R$200\nMês 3: recebe R$200\n...\n\nSempre R$200. Não importa se ficou 1 mês ou 100 meses — o pagamento mensal é o mesmo. Por quê? Porque os juros são SEMPRE calculados sobre o valor ORIGINAL (R$10.000), nunca sobre o que acumulou.\n\nIsso é juros simples: crescimento LINEAR, como subir uma escada com degraus iguais."},
+{t:"concept",ti:"A regra central",ct:"Em juros simples, os juros de CADA período são calculados sobre o CAPITAL INICIAL.\n\nNunca muda. Nunca cresce. Nunca acumula.\n\n→ Mês 1: juros sobre PV\n→ Mês 2: juros sobre PV (não sobre PV + juros do mês 1)\n→ Mês 3: juros sobre PV\n→ Mês n: juros sobre PV\n\nPor isso o crescimento é uma LINHA RETA.\n\nQuando muda pra juros compostos (módulo 4), os juros passam a ser calculados sobre o montante acumulado — e aí vira uma CURVA exponencial. Mas por enquanto, foco no simples."},
+{t:"formula",ti:"Fórmulas completas + Conversão de taxas",ct:"┌─────────────────────────────────────────────┐\n│  JUROS:      J = PV × i × n                │\n│  MONTANTE:   FV = PV × (1 + i × n)         │\n│  CAPITAL:    PV = FV / (1 + i × n)          │\n│  TAXA:       i = J / (PV × n)              │\n│  PRAZO:      n = J / (PV × i)              │\n└─────────────────────────────────────────────┘\n\n⚠️ CUIDADOS ESSENCIAIS:\n1. Taxa em DECIMAL (8% → 0,08)\n2. Taxa e prazo na MESMA UNIDADE\n3. Juros comerciais = ano de 360 dias\n4. Juros exatos = ano de 365 dias\n5. Se o problema dá prazo em dias e taxa mensal:\n   → n = dias / 30 (comercial)\n\nCONVERSÃO EM JUROS SIMPLES (proporcional):\n→ Anual → Mensal: ÷ 12\n→ Mensal → Diária: ÷ 30\n→ Anual → Diária: ÷ 360 (comercial) ou ÷ 365 (exato)\n\n⚠️ Em juros COMPOSTOS essa conversão NÃO funciona!"},
+{t:"example",ti:"Exemplo: Divisão de capital (questão 22!)",ct:"📝 Bruno tem R$3.000 e divide em 2 bancos:\nBanco 1: taxa 8% a.m., prazo 6 meses\nBanco 2: taxa 10% a.m., prazo 8 meses\nJuros total = R$1.824. Quanto colocou em cada?\n\nChamando de 'x' o que foi pro Banco 1:\n\nJ₁ = x × 0,08 × 6\nJ₁ = 0,48x\n\nJ₂ = (3.000 − x) × 0,10 × 8\nJ₂ = (3.000 − x) × 0,80\nJ₂ = 2.400 − 0,80x\n\nSomando:\n0,48x + 2.400 − 0,80x = 1.824\n−0,32x + 2.400 = 1.824\n−0,32x = 1.824 − 2.400\n−0,32x = −576\nx = −576 / −0,32\nx = 1.800\n\n✅ Banco 1: R$1.800 | Banco 2: R$1.200\nConferindo: 1.800×0,08×6 + 1.200×0,10×8\n= 864 + 960 = 1.824 ✓"}
+]}
 ];
 
-function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
-function makeQuiz(id){const bank=questionBanks[id]||[];return shuffle(bank).slice(0,5).map(q=>{const si=shuffle(q.options.map((_,i)=>i));const wf={};for(const[k,v]of Object.entries(q.wrongFeedback)){const n=si.indexOf(parseInt(k));if(n>=0)wf[n]=v;}return{...q,options:si.map(i=>q.options[i]),correct:si.indexOf(q.correct),wrongFeedback:wf};});}
-function getExtra(id,used){const a=(questionBanks[id]||[]).filter(q=>!used.includes(q.q));if(!a.length)return null;const q=a[Math.floor(Math.random()*a.length)];const si=shuffle(q.options.map((_,i)=>i));const wf={};for(const[k,v]of Object.entries(q.wrongFeedback)){const n=si.indexOf(parseInt(k));if(n>=0)wf[n]=v;}return{...q,options:si.map(i=>q.options[i]),correct:si.indexOf(q.correct),wrongFeedback:wf};}
+function mkQ(id){const bank=QB[id]||[];return shuffle(bank).slice(0,5).map(q=>{const si=shuffle(q.o.map((_,i)=>i));const wf={};for(const[k,v]of Object.entries(q.wf)){const n=si.indexOf(parseInt(k));if(n>=0)wf[n]=v}return{...q,o:si.map(i=>q.o[i]),c:si.indexOf(q.c),wf}})}
+function xQ(id,used){const a=(QB[id]||[]).filter(q=>!used.includes(q.q));if(!a.length)return null;const q=a[Math.floor(Math.random()*a.length)];const si=shuffle(q.o.map((_,i)=>i));const wf={};for(const[k,v]of Object.entries(q.wf)){const n=si.indexOf(parseInt(k));if(n>=0)wf[n]=v}return{...q,o:si.map(i=>q.o[i]),c:si.indexOf(q.c),wf}}
+
+const Ic={
+1:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("circle",{cx:20,cy:20,r:14}),React.createElement("path",{d:"M20 12v8l5 4"})),
+2:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("line",{x1:8,y1:32,x2:32,y2:8}),React.createElement("circle",{cx:12,cy:28,r:3}),React.createElement("circle",{cx:28,cy:12,r:3})),
+3:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("rect",{x:8,y:12,width:24,height:18,rx:2}),React.createElement("path",{d:"M14 12V8h12v4"})),
+4:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("path",{d:"M8 32Q14 28 18 20Q22 12 26 10Q30 8 32 6"})),
+5:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("path",{d:"M8 30h24"}),React.createElement("line",{x1:14,y1:30,x2:14,y2:22}),React.createElement("line",{x1:20,y1:30,x2:20,y2:18}),React.createElement("line",{x1:26,y1:30,x2:26,y2:14})),
+6:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("path",{d:"M10 32V14l10-6 10 6v18"})),
+7:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("rect",{x:8,y:8,width:24,height:24,rx:3}),React.createElement("polyline",{points:"13,26 18,18 23,22 28,14"})),
+lk:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:16,height:16,fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("rect",{x:12,y:20,width:16,height:12,rx:2}),React.createElement("path",{d:"M15 20v-5a5 5 0 0110 0v5"})),
+ck:()=>React.createElement("svg",{viewBox:"0 0 40 40",width:16,height:16,fill:"none",stroke:"currentColor",strokeWidth:2.5,strokeLinecap:"round",strokeLinejoin:"round"},React.createElement("polyline",{points:"12,20 18,26 28,14"})),
+ar:()=>React.createElement("svg",{width:14,height:14,viewBox:"0 0 16 16",fill:"none",stroke:"currentColor",strokeWidth:1.5,strokeLinecap:"round"},React.createElement("line",{x1:4,y1:8,x2:12,y2:8}),React.createElement("polyline",{points:"9,5 12,8 9,11"}))
+};
 
 function App(){
-  const[view,setView]=useState("roadmap");
-  const[modId,setModId]=useState(null);
-  const[ls,setLs]=useState(0);
-  const[qs,setQs]=useState([]);
-  const[qi,setQi]=useState(0);
-  const[sel,setSel]=useState(null);
-  const[rev,setRev]=useState(false);
-  const[sc,setSc]=useState(0);
-  const[ss,setSs]=useState(false);
-  const[unlocked,setUn]=useState([1]);
-  const[done,setDone]=useState([]);
-  const[tOpen,setTO]=useState(false);
-  const[tMsgs,setTM]=useState([]);
-  const[tLoad,setTL]=useState(false);
-  const[ext,setExt]=useState(0);
-  const sRef=useRef(null);
-  const tEnd=useRef(null);
-  const iRef=useRef(null);
+const[auth,setAuth]=useState(()=>{try{return localStorage.getItem(AK)==="ok"}catch(e){return false}});
+const[code,setCode]=useState("");
+const[codeErr,setCE]=useState(false);
+const s0=ld();
+const[vw,setV]=useState("road");
+const[mId,setM]=useState(null);
+const[lsi,setLi]=useState(0);
+const[qs,setQs]=useState([]);
+const[qi,setQi]=useState(0);
+const[sel,setSl]=useState(null);
+const[rev,setRv]=useState(false);
+const[sc,setSc]=useState(0);
+const[stp,setStp]=useState(false);
+const[hpO,setHpO]=useState(false);
+const[un,setUn]=useState(s0.u);
+const[dn,setDn]=useState(s0.d);
+const[bs,setBs]=useState(s0.b);
+const[tO,setTO]=useState(false);
+const[tM,setTM]=useState([]);
+const[tL,setTL]=useState(false);
+const[ext,setExt]=useState(0);
+const[hn,setHn]=useState(false);
+const[hu,setHu]=useState(0);
+const[mo,setMo]=useState(null);
+const sr=useRef(null),te=useRef(null),ir=useRef(null),codeRef=useRef(null);
 
-  useEffect(()=>{if(sRef.current)sRef.current.scrollTo(0,0);},[view,ls,qi]);
-  useEffect(()=>{if(tEnd.current)tEnd.current.scrollIntoView({behavior:"smooth"});},[tMsgs,tLoad]);
+useEffect(()=>{sv({u:un,d:dn,b:bs})},[un,dn,bs]);
+useEffect(()=>{if(sr.current)sr.current.scrollTo(0,0)},[vw,lsi,qi]);
+useEffect(()=>{if(te.current)te.current.scrollIntoView({behavior:"smooth"})},[tM,tL]);
 
-  const mod=modId?modules.find(m=>m.id===modId):null;
-  const total=qs.length;
-  const passN=Math.ceil(total*0.7);
+// AUTH SCREEN
+if(!auth){
+return React.createElement("div",{className:"lock-screen"},
+React.createElement("div",{className:"lock-box"},
+React.createElement("div",{style:{fontSize:40,marginBottom:16}},"🔒"),
+React.createElement("div",{style:{fontSize:20,color:C.gold,fontWeight:300,marginBottom:6}},"MatFin"),
+React.createElement("div",{style:{fontSize:13,color:C.td,marginBottom:24}},"Acesso restrito à turma"),
+React.createElement("input",{ref:codeRef,type:"password",placeholder:"Código de acesso",defaultValue:"",onKeyDown:e=>{if(e.key==="Enter"){const v=codeRef.current?.value;if(v===ACCESS_CODE){try{localStorage.setItem(AK,"ok")}catch(e){}setAuth(true)}else{setCE(true)}}},style:{width:"100%",maxWidth:280,background:C.card,border:"1px solid "+(codeErr?C.rd:C.bd),borderRadius:10,padding:"14px 16px",color:C.tx,fontSize:16,textAlign:"center",outline:"none",marginBottom:12}}),
+codeErr&&React.createElement("div",{style:{fontSize:13,color:C.rd,marginBottom:12}},"Código incorreto"),
+React.createElement("div",{onClick:()=>{const v=codeRef.current?.value;if(v===ACCESS_CODE){try{localStorage.setItem(AK,"ok")}catch(e){}setAuth(true)}else setCE(true)},style:{display:"inline-block",padding:"12px 32px",background:C.gold,color:C.bg,borderRadius:10,cursor:"pointer",fontWeight:700,fontSize:15}},"Entrar")))}
 
-  const openMod=id=>{setModId(id);setLs(0);setView("lesson");setQs([]);setQi(0);setSel(null);setRev(false);setSc(0);setSs(false);setExt(0);};
-  const startQ=()=>{setQs(makeQuiz(modId));setQi(0);setSel(null);setRev(false);setSc(0);setSs(false);setExt(0);setView("quiz");};
-  const ans=i=>{if(rev)return;setSel(i);setRev(true);if(i===qs[qi].correct)setSc(s=>s+1);};
-  const nextQ=()=>{
-    const wrong=sel!==qs[qi].correct;
-    let uq=qs;
-    if(wrong&&ext<3){const e=getExtra(modId,qs.map(q=>q.q));if(e){uq=[...qs,e];setQs(uq);setExt(x=>x+1);}}
-    if(qi<uq.length-1){setQi(q=>q+1);setSel(null);setRev(false);setSs(false);}else setView("result");
-  };
-  const finish=()=>{
-    if(sc>=passN&&!done.includes(modId)){setDone(p=>[...p,modId]);const n=modId+1;if(n<=7&&!unlocked.includes(n))setUn(p=>[...p,n]);}
-    setView("roadmap");setModId(null);
-  };
+const mod=mId?mods.find(m=>m.id===mId):null;
+const tot=qs.length,pN=Math.ceil(tot*.7);
+const opnM=id=>{setM(id);setLi(0);setV("lesson");setQs([]);setQi(0);setSl(null);setRv(false);setSc(0);setStp(false);setHpO(false);setExt(0);setHn(false);setHu(0)};
+const stQ=()=>{setQs(mkQ(mId));setQi(0);setSl(null);setRv(false);setSc(0);setStp(false);setHpO(false);setExt(0);setHn(false);setHu(0);setV("quiz")};
+const ans=i=>{if(rev)return;setSl(i);setRv(true);if(i===qs[qi].c)setSc(s=>s+1)};
+const nxt=()=>{const w=sel!==qs[qi].c;let uq=qs;if(w&&ext<3){const e=xQ(mId,qs.map(q=>q.q));if(e){uq=[...qs,e];setQs(uq);setExt(x=>x+1)}}if(qi<uq.length-1){setQi(q=>q+1);setSl(null);setRv(false);setStp(false);setHpO(false);setHn(false)}else setV("result")};
+const fin=()=>{const p=sc>=pN;if(p&&!dn.includes(mId)){setDn(d=>[...d,mId]);const n=mId+1;if(n<=7&&!un.includes(n))setUn(u=>[...u,n])}const pct=Math.round((sc/tot)*100);if(!bs[mId]||pct>bs[mId])setBs(p=>({...p,[mId]:pct}));setV("road");setM(null)};
 
-  const sendMsg=useCallback(async()=>{
-    const v=iRef.current?.value?.trim();if(!v||tLoad)return;iRef.current.value="";
-    const nm=[...tMsgs,{role:"user",content:v}];setTM(nm);setTL(true);
-    try{
-      const ctx=mod?`Aluno no Módulo ${mod.id}: ${mod.title}.`:"Navegando o roadmap.";
-      const cq=view==="quiz"&&qs[qi]?`\nQuestão: "${qs[qi].q}"`:"";
-      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
-          system:`Tutor de MatFin para estudante brasileiro. ${ctx}${cq}\nRegras: português BR, analogias, passo a passo estilo caderno, NUNCA dê resposta de quiz, máx 200 palavras.`,
-          messages:nm.map(m=>({role:m.role,content:m.content}))})});
-      const d=await r.json();
-      setTM(p=>[...p,{role:"assistant",content:d.content?.map(c=>c.text||"").join("\n")||"Erro."}]);
-    }catch{setTM(p=>[...p,{role:"assistant",content:"Erro de conexão."}]);}
-    setTL(false);
-  },[tMsgs,tLoad,mod,view,qs,qi]);
+const sendMsg=useCallback(async()=>{const v=ir.current?.value?.trim();if(!v||tL)return;ir.current.value="";const nm=[...tM,{role:"user",content:v}];setTM(nm);setTL(true);try{const ctx=mod?"Módulo "+mod.id+": "+mod.title+".":"";const cq=vw==="quiz"&&qs[qi]?"\nQuestão: \""+qs[qi].q+"\"":"";const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:"Tutor MatFin para estudante brasileiro. "+ctx+cq+"\nRegras: pt-BR, analogias, passo a passo estilo caderno, NUNCA dê resposta de quiz — guie raciocínio, inclua HP 12C quando relevante, máx 200 palavras.",messages:nm.map(m=>({role:m.role,content:m.content}))})});const d=await r.json();setTM(p=>[...p,{role:"assistant",content:d.content?.map(c=>c.text||"").join("\n")||"Erro."}])}catch(e){setTM(p=>[...p,{role:"assistant",content:"Erro de conexão."}])}setTL(false)},[tM,tL,mod,vw,qs,qi]);
+const onK=useCallback(e=>{if(e.key==="Enter"){e.preventDefault();sendMsg()}},[sendMsg]);
 
-  const onKey=useCallback(e=>{if(e.key==="Enter"){e.preventDefault();sendMsg();}},[sendMsg]);
+const Tutor=()=>React.createElement(React.Fragment,null,React.createElement("div",{onClick:()=>setTO(o=>!o),style:{position:"fixed",bottom:20,right:20,width:52,height:52,borderRadius:"50%",background:C.gold,color:C.bg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:20,zIndex:1001,boxShadow:"0 4px 16px rgba(201,168,76,.35)"}},tO?"×":"🎓"),tO&&React.createElement("div",{style:{position:"fixed",bottom:0,left:0,right:0,height:"65vh",background:"#141413",borderTop:"2px solid "+C.gold,display:"flex",flexDirection:"column",zIndex:1000,borderTopLeftRadius:16,borderTopRightRadius:16}},React.createElement("div",{style:{padding:"12px 16px",borderBottom:"1px solid "+C.bd,background:C.card,flexShrink:0,display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("span",{style:{fontSize:14,color:C.gold,fontWeight:600}},"🎓 Tutor AI"),React.createElement("span",{onClick:()=>setTO(false),style:{color:C.td,cursor:"pointer",fontSize:22,padding:"4px 8px"}},"×")),React.createElement("div",{style:{flex:1,overflowY:"auto",padding:14,display:"flex",flexDirection:"column",gap:10,WebkitOverflowScrolling:"touch"}},tM.length===0&&React.createElement("div",{style:{textAlign:"center",color:C.td,fontSize:13,marginTop:32,lineHeight:1.8}},"👋 Pergunte qualquer dúvida!",React.createElement("br"),React.createElement("span",{style:{color:C.gold,fontSize:12}},"Incluo dicas de HP 12C")),tM.map((m,i)=>React.createElement("div",{key:i,style:{alignSelf:m.role==="user"?"flex-end":"flex-start",maxWidth:"85%",padding:"10px 14px",background:m.role==="user"?C.gold+"20":C.card,border:"1px solid "+(m.role==="user"?C.gd:C.bd),borderRadius:m.role==="user"?"12px 12px 4px 12px":"12px 12px 12px 4px",fontSize:14,lineHeight:1.7,color:C.tc,whiteSpace:"pre-line"}},m.content)),tL&&React.createElement("div",{style:{alignSelf:"flex-start",padding:"10px 14px",background:C.card,border:"1px solid "+C.bd,borderRadius:"12px",fontSize:14,color:C.td}},"Pensando..."),React.createElement("div",{ref:te})),React.createElement("div",{style:{padding:"10px 14px",borderTop:"1px solid "+C.bd,background:C.card,flexShrink:0,display:"flex",gap:8}},React.createElement("input",{ref:ir,defaultValue:"",onKeyDown:onK,placeholder:"Sua dúvida...",autoComplete:"off",autoCorrect:"off",spellCheck:false,style:{flex:1,background:C.bg,border:"1px solid "+C.bd,borderRadius:8,padding:"12px 14px",color:C.tx,fontSize:16,outline:"none",WebkitAppearance:"none"}}),React.createElement("button",{onClick:sendMsg,disabled:tL,style:{background:C.gold,color:C.bg,border:"none",borderRadius:8,padding:"12px 18px",cursor:"pointer",fontWeight:700,fontSize:16,opacity:tL?.4:1,minWidth:48}},"→"))));
 
-  const Tutor=()=>(<>
-    <div onClick={()=>setTO(o=>!o)} style={{position:"fixed",bottom:20,right:20,width:54,height:54,borderRadius:"50%",background:C.gold,color:C.bg,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:22,zIndex:1001,boxShadow:"0 4px 20px rgba(201,168,76,0.4)"}}>{tOpen?"×":"🎓"}</div>
-    {tOpen&&<div style={{position:"fixed",bottom:0,left:0,right:0,height:"65vh",background:"#141413",borderTop:`2px solid ${C.gold}`,display:"flex",flexDirection:"column",zIndex:1000,borderTopLeftRadius:16,borderTopRightRadius:16}}>
-      <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,background:C.card,flexShrink:0,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontSize:14,color:C.gold,fontWeight:600}}>🎓 Tutor AI</span>
-        <span onClick={()=>setTO(false)} style={{color:C.textDim,cursor:"pointer",fontSize:22,padding:"4px 8px"}}>×</span>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:14,display:"flex",flexDirection:"column",gap:10,WebkitOverflowScrolling:"touch"}}>
-        {tMsgs.length===0&&<div style={{textAlign:"center",color:C.textDim,fontSize:13,marginTop:32,lineHeight:1.8}}>👋 Tutor de MatFin.<br/>Pergunte qualquer dúvida!</div>}
-        {tMsgs.map((m,i)=><div key={i} style={{alignSelf:m.role==="user"?"flex-end":"flex-start",maxWidth:"85%",padding:"10px 14px",background:m.role==="user"?C.gold+"20":C.card,border:`1px solid ${m.role==="user"?C.goldDim:C.border}`,borderRadius:m.role==="user"?"12px 12px 4px 12px":"12px 12px 12px 4px",fontSize:14,lineHeight:1.7,color:C.textContent,whiteSpace:"pre-line"}}>{m.content}</div>)}
-        {tLoad&&<div style={{alignSelf:"flex-start",padding:"10px 14px",background:C.card,border:`1px solid ${C.border}`,borderRadius:"12px 12px 12px 4px",fontSize:14,color:C.textDim}}>Pensando...</div>}
-        <div ref={tEnd}/>
-      </div>
-      <div style={{padding:"10px 14px",borderTop:`1px solid ${C.border}`,background:C.card,flexShrink:0,display:"flex",gap:8}}>
-        <input ref={iRef} defaultValue="" onKeyDown={onKey} placeholder="Sua dúvida..." autoComplete="off" autoCorrect="off" spellCheck={false} style={{flex:1,background:C.bg,border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",color:C.text,fontSize:16,outline:"none",WebkitAppearance:"none"}}/>
-        <button onClick={sendMsg} disabled={tLoad} style={{background:C.gold,color:C.bg,border:"none",borderRadius:8,padding:"12px 18px",cursor:"pointer",fontWeight:700,fontSize:16,opacity:tLoad?0.4:1,minWidth:48}}>→</button>
-      </div>
-    </div>}
-  </>);
+const Modal=()=>{if(!mo)return null;const isA=mo==="all";return React.createElement("div",{className:"mo",onClick:()=>setMo(null)},React.createElement("div",{className:"mb",onClick:e=>e.stopPropagation()},React.createElement("div",{style:{fontSize:15,color:C.tx,marginBottom:6}},isA?"Reiniciar todo o progresso?":"Reiniciar módulo "+mo+"?"),React.createElement("div",{style:{fontSize:12,color:C.td,marginBottom:20}},isA?"Volta ao módulo 1.":"Poderá refazer."),React.createElement("div",{style:{display:"flex",gap:8,justifyContent:"center"}},React.createElement("div",{onClick:()=>setMo(null),style:{padding:"10px 20px",background:"#252423",color:C.td,borderRadius:10,cursor:"pointer",fontSize:13}},"Cancelar"),React.createElement("div",{onClick:()=>{if(isA){setUn([1]);setDn([]);setBs({})}else{setDn(p=>p.filter(x=>x!==mo));setBs(p=>{const n={...p};delete n[mo];return n})}setMo(null)},style:{padding:"10px 20px",background:C.rd,color:"#fff",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:600}},"Confirmar"))))};
 
-  const ph={3:{t:"Valor Atual & Nominal",s:"Quanto vale hoje?",e:"🎯"},4:{t:"Juros Compostos",s:"A 8ª maravilha",e:"🚀"},5:{t:"Séries de Pagamentos",s:"Parcelas",e:"🔄"},6:{t:"Amortização",s:"SAC vs Price",e:"🏠"},7:{t:"Análise de Investimentos",s:"VPL, TIR",e:"📊"}};
-  const Btn=({children,primary,onClick,style:s})=><div onClick={onClick} style={{padding:"12px 20px",background:primary?C.gold:"#252423",color:primary?C.bg:C.text,borderRadius:10,cursor:"pointer",fontSize:14,fontWeight:primary?700:400,textAlign:"center",...s}}>{children}</div>;
+const Btn=({children,primary,onClick,style:s})=>React.createElement("div",{onClick,style:{padding:"12px 20px",background:primary?C.gold:"#252423",color:primary?C.bg:C.tx,borderRadius:10,cursor:"pointer",fontSize:14,fontWeight:primary?700:400,textAlign:"center",...s}},children);
+const ph={3:{t:"Valor Atual & Nominal",s:"Quanto vale hoje?"},4:{t:"Juros Compostos",s:"A 8ª maravilha"},5:{t:"Séries de Pagamentos",s:"Parcelas"},6:{t:"Amortização",s:"SAC vs Price"},7:{t:"Análise de Investimentos",s:"VPL, TIR"}};
+const allMods=[...mods,...[3,4,5,6,7].map(id=>({id,title:ph[id].t,subtitle:ph[id].s,ph:true}))];
 
-  if(view==="roadmap")return(
-    <div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
-      <div style={{maxWidth:680,margin:"0 auto",padding:"32px 16px"}} ref={sRef}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:11,letterSpacing:5,color:C.goldDim,textTransform:"uppercase",marginBottom:8}}>Matemática Financeira</div>
-          <h1 style={{fontSize:26,fontWeight:400,color:C.gold,margin:0}}>Seu Roadmap</h1>
-          <p style={{color:C.textDim,fontSize:13,margin:"4px 0 0",fontStyle:"italic"}}>{done.length}/7</p>
-        </div>
-        <div style={{background:C.card,borderRadius:10,padding:"12px 16px",marginBottom:24,border:`1px solid ${C.border}`}}>
-          <div style={{background:C.bg,borderRadius:6,height:6,overflow:"hidden"}}><div style={{width:`${(done.length/7)*100}%`,height:"100%",background:`linear-gradient(90deg,${C.goldDim},${C.gold})`,borderRadius:6,transition:"width 0.5s"}}/></div>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {[...modules,...[3,4,5,6,7].map(id=>({id,title:ph[id].t,subtitle:ph[id].s,emoji:ph[id].e,ph:true}))].map(m=>{
-            const u=unlocked.includes(m.id),d=done.includes(m.id);
-            return <div key={m.id} onClick={()=>u&&!m.ph&&openMod(m.id)} style={{background:u?C.card:"#131312",border:`1px solid ${d?C.gold:u?C.border:"#1f1e1d"}`,borderRadius:12,padding:"14px 16px",cursor:u&&!m.ph?"pointer":"default",opacity:u?1:0.35,display:"flex",alignItems:"center",gap:12,position:"relative"}}>
-              {d&&<div style={{position:"absolute",top:0,right:0,background:C.gold,color:C.bg,fontSize:9,padding:"2px 8px",borderBottomLeftRadius:8,fontWeight:700}}>✓</div>}
-              <div style={{width:40,height:40,borderRadius:"50%",background:d?C.gold:"#252423",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,color:d?C.bg:C.textDim,flexShrink:0}}>{d?"✓":u?m.emoji:"🔒"}</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:10,letterSpacing:2,color:C.goldDim,textTransform:"uppercase"}}>Módulo {m.id}</div>
-                <div style={{fontSize:15,color:u?C.text:C.textDim}}>{m.title}</div>
-                <div style={{fontSize:12,color:C.textDim,fontStyle:"italic"}}>{m.subtitle}</div>
-              </div>
-              {u&&!d&&!m.ph&&<span style={{color:C.gold}}>→</span>}
-            </div>;
-          })}
-        </div>
-        <div style={{marginTop:24,padding:12,background:C.card,borderRadius:10,border:`1px solid ${C.border}`,fontSize:12,color:C.textDim,lineHeight:1.6,textAlign:"center"}}>
-          <strong style={{color:C.gold}}>Dica:</strong> Aula → Quiz adaptativo → 70% pra avançar. Use 🎓 pra dúvidas.
-        </div>
-      </div>
-      <Tutor/>
-    </div>
-  );
+// ROADMAP
+if(vw==="road")return React.createElement("div",{style:{minHeight:"100vh",background:C.bg,paddingBottom:80}},React.createElement("div",{style:{maxWidth:680,margin:"0 auto",padding:"32px 16px"},ref:sr},React.createElement("div",{style:{textAlign:"center",marginBottom:28}},React.createElement("div",{style:{fontSize:11,letterSpacing:6,color:C.gd,textTransform:"uppercase",marginBottom:8}},"Matemática Financeira"),React.createElement("h1",{style:{fontSize:26,fontWeight:300,color:C.gold,margin:0,letterSpacing:1}},"Seu Roadmap"),React.createElement("p",{style:{color:C.td,fontSize:13,margin:"6px 0 0"}},dn.length+"/7 completos")),React.createElement("div",{style:{background:C.card,borderRadius:10,padding:"12px 16px",marginBottom:20,border:"1px solid "+C.bd}},React.createElement("div",{style:{background:C.bg,borderRadius:6,height:5,overflow:"hidden"}},React.createElement("div",{style:{width:(dn.length/7*100)+"%",height:"100%",background:"linear-gradient(90deg,"+C.gd+","+C.gold+")",borderRadius:6,transition:"width .5s"}}))),React.createElement("div",{style:{textAlign:"right",marginBottom:14}},React.createElement("span",{onClick:()=>setMo("all"),style:{fontSize:11,color:C.td,cursor:"pointer",opacity:.6}},"Reiniciar progresso")),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},allMods.map(m=>{const u=un.includes(m.id),d=dn.includes(m.id),b=bs[m.id];const Icon=Ic[m.id]||Ic.lk;return React.createElement("div",{key:m.id,onClick:()=>u&&!m.ph&&opnM(m.id),style:{background:u?C.card:"#131312",border:"1px solid "+(d?C.gold+"60":u?C.bd:"#1f1e1d"),borderRadius:12,padding:"14px 16px",cursor:u&&!m.ph?"pointer":"default",opacity:u?1:.35,display:"flex",alignItems:"center",gap:14}},React.createElement("div",{style:{width:42,height:42,borderRadius:"50%",background:d?C.gold:"#1f1e1d",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:d?C.bg:C.gold}},d?React.createElement(Ic.ck):u?React.createElement(Icon):React.createElement(Ic.lk)),React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{style:{fontSize:10,letterSpacing:2,color:C.gd,textTransform:"uppercase"}},"Módulo "+m.id+(b?" · "+b+"%":"")),React.createElement("div",{style:{fontSize:15,color:u?C.tx:C.td,fontWeight:300}},m.title),React.createElement("div",{style:{fontSize:12,color:C.td,fontStyle:"italic"}},m.subtitle)),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},d&&!m.ph&&React.createElement("span",{onClick:e=>{e.stopPropagation();setMo(m.id)},style:{fontSize:11,color:C.td,cursor:"pointer",padding:"4px 8px",opacity:.5}},"↺"),u&&!d&&!m.ph&&React.createElement(Ic.ar)))})),React.createElement("div",{style:{marginTop:24,padding:14,background:C.card,borderRadius:10,border:"1px solid "+C.bd,fontSize:12,color:C.td,lineHeight:1.7,textAlign:"center"}},"Aula completa → Quiz adaptativo → 70% pra avançar",React.createElement("br"),React.createElement("span",{style:{color:C.or}},"💡Dica")," · ",React.createElement("span",{style:{color:C.hp}},"🖩HP 12C")," · ",React.createElement("span",{style:{color:C.gold}},"🎓Tutor AI"))),React.createElement(Tutor),React.createElement(Modal));
 
-  if(!mod)return null;
+if(!mod)return null;
+const lesson=mod.ls;
+const clr={analogy:C.gold,concept:C.bl,vocabulary:C.gold,formula:C.gn,example:"#C78F50"};
 
-  if(view==="lesson"){
-    const step=mod.lesson[ls];const last=ls===mod.lesson.length-1;
-    const lb={analogy:"🎯 Analogia",concept:"📖 Conceito",vocabulary:"📝 Vocabulário",formula:"📐 Fórmulas",example:"✏️ Exemplo"};
-    const cl={analogy:C.gold,concept:C.blue,vocabulary:C.gold,formula:C.green,example:"#C78F50"};
-    return(<div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
-      <div style={{maxWidth:680,margin:"0 auto",padding:"28px 16px"}} ref={sRef}>
-        <div onClick={()=>setView("roadmap")} style={{color:C.goldDim,fontSize:13,cursor:"pointer",marginBottom:16}}>← Roadmap</div>
-        <div style={{marginBottom:16}}><div style={{fontSize:10,letterSpacing:3,color:C.goldDim,textTransform:"uppercase"}}>Módulo {mod.id}</div><h2 style={{fontSize:22,fontWeight:400,color:C.gold,margin:"2px 0 0"}}>{mod.title}</h2></div>
-        <div style={{display:"flex",gap:4,marginBottom:20}}>{mod.lesson.map((_,i)=><div key={i} onClick={()=>setLs(i)} style={{flex:1,height:4,borderRadius:2,cursor:"pointer",background:i<=ls?C.gold:"#252423"}}/>)}</div>
-        <div style={{background:C.card,borderRadius:12,border:`1px solid ${C.border}`,padding:"20px 18px",marginBottom:16}}>
-          <div style={{display:"inline-block",fontSize:11,letterSpacing:2,textTransform:"uppercase",color:cl[step.type]||C.gold,marginBottom:12,padding:"3px 10px",background:(cl[step.type]||C.gold)+"15",borderRadius:6}}>{lb[step.type]}</div>
-          <h3 style={{fontSize:17,fontWeight:400,color:C.text,margin:"0 0 14px"}}>{step.title}</h3>
-          <div style={{fontSize:14,lineHeight:1.85,color:C.textContent,whiteSpace:"pre-line",fontFamily:["formula","example"].includes(step.type)?"'Courier New',monospace":"inherit",background:["formula","example"].includes(step.type)?C.bg:"transparent",padding:["formula","example"].includes(step.type)?"16px":"0",borderRadius:10,borderLeft:step.type==="example"?`3px solid ${C.gold}`:"none",overflowX:"auto"}}>{step.content}</div>
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          {ls>0&&<Btn onClick={()=>setLs(s=>s-1)}>← Anterior</Btn>}
-          <div style={{flex:1}}/>
-          <Btn primary={last} onClick={()=>last?startQ():setLs(s=>s+1)}>{last?"Quiz 🧠":"Próximo →"}</Btn>
-        </div>
-      </div>
-      <Tutor/>
-    </div>);
-  }
+// LESSON
+if(vw==="lesson"){const step=lesson[lsi];const last=lsi===lesson.length-1;return React.createElement("div",{style:{minHeight:"100vh",background:C.bg,paddingBottom:80}},React.createElement("div",{style:{maxWidth:680,margin:"0 auto",padding:"28px 16px"},ref:sr},React.createElement("div",{onClick:()=>setV("road"),style:{color:C.gd,fontSize:13,cursor:"pointer",marginBottom:16}},"← Roadmap"),React.createElement("div",{style:{marginBottom:16}},React.createElement("div",{style:{fontSize:10,letterSpacing:3,color:C.gd,textTransform:"uppercase"}},"Módulo "+mod.id),React.createElement("h2",{style:{fontSize:22,fontWeight:300,color:C.gold,margin:"2px 0 0"}},mod.title)),React.createElement("div",{style:{display:"flex",gap:4,marginBottom:20}},lesson.map((_,i)=>React.createElement("div",{key:i,onClick:()=>setLi(i),style:{flex:1,height:3,borderRadius:2,cursor:"pointer",background:i<=lsi?C.gold:"#252423"}}))),React.createElement("div",{style:{background:C.card,borderRadius:12,border:"1px solid "+C.bd,padding:"20px 18px",marginBottom:16}},React.createElement("div",{style:{display:"inline-block",fontSize:10,letterSpacing:2,textTransform:"uppercase",color:clr[step.t]||C.gold,marginBottom:12,padding:"3px 10px",background:(clr[step.t]||C.gold)+"15",borderRadius:6}},step.ti),React.createElement("div",{style:{fontSize:14,lineHeight:1.85,color:C.tc,whiteSpace:"pre-line",fontFamily:["formula","example"].includes(step.t)?"'Courier New',monospace":"inherit",background:["formula","example"].includes(step.t)?C.bg:"transparent",padding:["formula","example"].includes(step.t)?"16px":"0",borderRadius:10,borderLeft:step.t==="example"?"3px solid "+C.gold:"none",overflowX:"auto"}},step.ct)),React.createElement("div",{style:{display:"flex",gap:8}},lsi>0&&React.createElement(Btn,{onClick:()=>setLi(s=>s-1)},"← Anterior"),React.createElement("div",{style:{flex:1}}),React.createElement(Btn,{primary:last,onClick:()=>last?stQ():setLi(s=>s+1)},last?"Iniciar Quiz 🧠":"Próximo →"))),React.createElement(Tutor),React.createElement(Modal))}
 
-  if(view==="quiz"&&qs[qi]){
-    const q=qs[qi];const ok=sel===q.correct;
-    return(<div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
-      <div style={{maxWidth:680,margin:"0 auto",padding:"28px 16px"}} ref={sRef}>
-        <div onClick={()=>{setView("lesson");setLs(0);}} style={{color:C.goldDim,fontSize:13,cursor:"pointer",marginBottom:16}}>← Aula</div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div><div style={{fontSize:10,letterSpacing:3,color:C.goldDim,textTransform:"uppercase"}}>Quiz — Módulo {mod.id}</div><h2 style={{fontSize:18,fontWeight:400,color:C.gold,margin:"2px 0 0"}}>{qi+1}/{qs.length}</h2></div>
-          <div style={{background:C.card,borderRadius:8,padding:"5px 10px",border:`1px solid ${C.border}`,fontSize:13,color:C.textDim}}>✓ {sc}</div>
-        </div>
-        {ext>0&&<div style={{background:C.gold+"10",border:`1px solid ${C.goldDim}40`,borderRadius:8,padding:"7px 12px",marginBottom:12,fontSize:12,color:C.goldDim}}>⚡ +{ext} extra(s)</div>}
-        <div style={{display:"flex",gap:3,marginBottom:18}}>{qs.map((_,i)=><div key={i} style={{flex:1,height:3,borderRadius:2,background:i<qi?C.gold:i===qi?C.gold+"88":"#252423"}}/>)}</div>
-        <div style={{background:C.card,borderRadius:12,border:`1px solid ${C.border}`,padding:16,marginBottom:12}}><div style={{fontSize:15,lineHeight:1.7}}>{q.q}</div></div>
-        <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12}}>
-          {q.options.map((o,i)=>{let bg=C.card,bd=C.border,cl=C.text;if(rev){if(i===q.correct){bg=C.greenBg;bd=C.green;cl="#B8DDB9";}else if(i===sel){bg=C.redBg;bd=C.red;cl="#E8B0AE";}}
-            return <div key={i} onClick={()=>ans(i)} style={{padding:"13px 14px",background:bg,border:`1px solid ${bd}`,borderRadius:10,cursor:rev?"default":"pointer",color:cl,fontSize:14,display:"flex",alignItems:"center",gap:10}}>
-              <span style={{width:26,height:26,borderRadius:"50%",border:`1px solid ${bd}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0,background:rev&&i===q.correct?C.green:"transparent",color:rev&&i===q.correct?"#fff":cl}}>{rev&&i===q.correct?"✓":rev&&i===sel?"✗":String.fromCharCode(65+i)}</span>
-              <span style={{flex:1}}>{o}</span>
-            </div>;})}
-        </div>
-        {rev&&<div>
-          <div style={{background:C.card,borderRadius:12,border:`1px solid ${C.border}`,padding:16,marginBottom:8,borderLeft:`3px solid ${ok?C.green:C.red}`}}>
-            <div style={{fontSize:12,fontWeight:700,color:ok?C.green:C.red,marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>{ok?"✅ Correto!":"❌ Errado:"}</div>
-            {!ok&&q.wrongFeedback[sel]&&<div style={{fontSize:13,lineHeight:1.7,color:"#E8B0AE",marginBottom:12,padding:"10px 12px",background:C.redBg,borderRadius:8,whiteSpace:"pre-line"}}>🔍 {q.wrongFeedback[sel]}</div>}
-            <div style={{fontSize:13,lineHeight:1.7,color:C.textContent,whiteSpace:"pre-line"}}><strong style={{color:C.gold}}>Correto:</strong> {q.rightFeedback}</div>
-          </div>
-          <div onClick={()=>setSs(s=>!s)} style={{background:C.card,borderRadius:10,border:`1px solid ${C.border}`,padding:"10px 14px",cursor:"pointer",marginBottom:8,display:"flex",justifyContent:"space-between"}}><span style={{fontSize:13,color:C.gold}}>📐 Passo a passo</span><span style={{color:C.goldDim}}>{ss?"−":"+"}</span></div>
-          {ss&&<div style={{background:C.bg,borderRadius:10,padding:14,border:`1px solid ${C.border}`,fontFamily:"'Courier New',monospace",fontSize:13,lineHeight:2,color:C.textContent,whiteSpace:"pre-line",borderLeft:`3px solid ${C.gold}`,marginBottom:8,overflowX:"auto"}}>{q.steps}</div>}
-          <Btn primary onClick={nextQ}>{qi<qs.length-1?"Próxima →":"Resultado"}</Btn>
-        </div>}
-      </div>
-      <Tutor/>
-    </div>);
-  }
+// QUIZ
+if(vw==="quiz"&&qs[qi]){const q=qs[qi],ok=sel===q.c;return React.createElement("div",{style:{minHeight:"100vh",background:C.bg,paddingBottom:80}},React.createElement("div",{style:{maxWidth:680,margin:"0 auto",padding:"28px 16px"},ref:sr},React.createElement("div",{onClick:()=>{setV("lesson");setLi(0)},style:{color:C.gd,fontSize:13,cursor:"pointer",marginBottom:16}},"← Aula"),React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},React.createElement("div",null,React.createElement("div",{style:{fontSize:10,letterSpacing:3,color:C.gd,textTransform:"uppercase"}},"Quiz · Módulo "+mod.id),React.createElement("h2",{style:{fontSize:17,fontWeight:300,color:C.gold,margin:"2px 0 0"}},(qi+1)+"/"+qs.length)),React.createElement("div",{style:{display:"flex",gap:6,alignItems:"center"}},hu>0&&React.createElement("span",{style:{fontSize:11,color:C.or}},"💡"+hu),React.createElement("div",{style:{background:C.card,borderRadius:8,padding:"4px 10px",border:"1px solid "+C.bd,fontSize:13,color:C.td}},"✓"+sc))),ext>0&&React.createElement("div",{style:{background:C.gold+"10",border:"1px solid "+C.gd+"30",borderRadius:8,padding:"6px 12px",marginBottom:10,fontSize:11,color:C.gd}},"+"+ext+" extra(s)"),React.createElement("div",{style:{display:"flex",gap:3,marginBottom:16}},qs.map((_,i)=>React.createElement("div",{key:i,style:{flex:1,height:3,borderRadius:2,background:i<qi?C.gold:i===qi?C.gold+"88":"#252423"}}))),React.createElement("div",{style:{background:C.card,borderRadius:12,border:"1px solid "+C.bd,padding:16,marginBottom:12}},React.createElement("div",{style:{fontSize:15,lineHeight:1.7}},q.q)),!rev&&!hn&&React.createElement("div",{onClick:()=>{setHn(true);setHu(h=>h+1)},style:{background:C.orB,border:"1px solid "+C.or+"30",borderRadius:10,padding:"10px 14px",marginBottom:10,cursor:"pointer",display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:16}},"💡"),React.createElement("span",{style:{fontSize:13,color:C.or}},"Preciso de uma dica")),hn&&!rev&&React.createElement("div",{style:{background:C.orB,border:"1px solid "+C.or+"30",borderRadius:10,padding:"12px 14px",marginBottom:10,borderLeft:"3px solid "+C.or}},React.createElement("div",{style:{fontSize:13,lineHeight:1.7,color:C.tc}},q.ht)),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6,marginBottom:12}},q.o.map((o,i)=>{let bg=C.card,bd=C.bd,cl=C.tx;if(rev){if(i===q.c){bg=C.gnB;bd=C.gn;cl="#B8DDB9"}else if(i===sel){bg=C.rdB;bd=C.rd;cl="#E8B0AE"}}return React.createElement("div",{key:i,onClick:()=>ans(i),style:{padding:"12px 14px",background:bg,border:"1px solid "+bd,borderRadius:10,cursor:rev?"default":"pointer",color:cl,fontSize:14,display:"flex",alignItems:"center",gap:10}},React.createElement("span",{style:{width:26,height:26,borderRadius:"50%",border:"1px solid "+bd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0,background:rev&&i===q.c?C.gn:"transparent",color:rev&&i===q.c?"#fff":cl}},rev&&i===q.c?"✓":rev&&i===sel?"✗":String.fromCharCode(65+i)),React.createElement("span",{style:{flex:1}},o))})),rev&&React.createElement("div",null,React.createElement("div",{style:{background:C.card,borderRadius:12,border:"1px solid "+C.bd,padding:16,marginBottom:8,borderLeft:"3px solid "+(ok?C.gn:C.rd)}},React.createElement("div",{style:{fontSize:12,fontWeight:600,color:ok?C.gn:C.rd,marginBottom:8,letterSpacing:1}},ok?"✅ CORRETO":"❌ ERRADO — veja onde errou:"),!ok&&q.wf[sel]&&React.createElement("div",{style:{fontSize:13,lineHeight:1.7,color:"#E8B0AE",marginBottom:10,padding:"10px 12px",background:C.rdB,borderRadius:8,whiteSpace:"pre-line"}},"🔍 "+q.wf[sel]),React.createElement("div",{style:{fontSize:13,lineHeight:1.7,color:C.tc,whiteSpace:"pre-line"}},React.createElement("strong",{style:{color:C.gold}},"✓ Resposta: "),q.rf)),React.createElement("div",{onClick:()=>setStp(s=>!s),style:{background:C.card,borderRadius:10,border:"1px solid "+C.bd,padding:"10px 14px",cursor:"pointer",marginBottom:6,display:"flex",justifyContent:"space-between"}},React.createElement("span",{style:{fontSize:13,color:C.gold}},"📐 Passo a passo completo"),React.createElement("span",{style:{color:C.gd,fontSize:14}},stp?"−":"+")),stp&&React.createElement("div",{style:{background:C.bg,borderRadius:10,padding:14,border:"1px solid "+C.bd,fontFamily:"'Courier New',monospace",fontSize:13,lineHeight:2,color:C.tc,whiteSpace:"pre-line",borderLeft:"3px solid "+C.gold,marginBottom:6,overflowX:"auto"}},q.st),React.createElement("div",{onClick:()=>setHpO(s=>!s),style:{background:C.card,borderRadius:10,border:"1px solid "+C.bd,padding:"10px 14px",cursor:"pointer",marginBottom:8,display:"flex",justifyContent:"space-between"}},React.createElement("span",{style:{fontSize:13,color:C.hp}},"🖩 Resolução HP 12C"),React.createElement("span",{style:{color:C.hp+"80",fontSize:14}},hpO?"−":"+")),hpO&&React.createElement("div",{style:{background:C.hpB,borderRadius:10,padding:14,border:"1px solid "+C.hp+"30",fontFamily:"'Courier New',monospace",fontSize:13,lineHeight:2,color:C.tc,whiteSpace:"pre-line",borderLeft:"3px solid "+C.hp,marginBottom:8,overflowX:"auto"}},q.hp),React.createElement(Btn,{primary:true,onClick:nxt},qi<qs.length-1?"Próxima pergunta →":"Ver resultado"))),React.createElement(Tutor),React.createElement(Modal))}
 
-  if(view==="result"){
-    const p=sc>=passN;
-    return(<div style={{minHeight:"100vh",background:C.bg,paddingBottom:80}}>
-      <div style={{maxWidth:680,margin:"0 auto",padding:"40px 16px",textAlign:"center"}}>
-        <div style={{fontSize:64,marginBottom:12}}>{p?"🏆":"📚"}</div>
-        <div style={{fontSize:32,color:C.gold,fontWeight:300}}>{sc}/{total}</div>
-        <div style={{fontSize:12,letterSpacing:2,textTransform:"uppercase",color:p?C.green:C.red,margin:"6px 0 24px"}}>{p?"Aprovado":"Não passou"}</div>
-        <div style={{fontSize:14,color:C.textDim,marginBottom:28,lineHeight:1.6}}>{p?`Módulo ${mod.id} dominado!${mod.id<7?` Módulo ${mod.id+1} desbloqueado.`:""}`:`Precisa ${passN} acertos. Questões novas na próxima tentativa!`}</div>
-        <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
-          {!p&&<><Btn onClick={()=>{setLs(0);setView("lesson");}}>📖 Revisar</Btn><Btn primary onClick={startQ}>🔄 Tentar</Btn></>}
-          <Btn primary={p} onClick={finish}>{p?"Roadmap →":"Roadmap"}</Btn>
-        </div>
-      </div>
-      <Tutor/>
-    </div>);
-  }
-  return null;
-}
-
-ReactDOM.render(<App/>,document.getElementById("root"));
-</script>
-</body>
-</html>
+// RESULT
+if(vw==="result"){const p=sc>=pN;return React.createElement("div",{style:{minHeight:"100vh",background:C.bg,paddingBottom:80}},React.createElement("div",{style:{maxWidth:680,margin:"0 auto",padding:"40px 16px",textAlign:"center"}},React.createElement("div",{style:{fontSize:56,marginBottom:12}},p?"🏆":"📚"),React.createElement("div",{style:{fontSize:30,color:C.gold,fontWeight:300}},sc+"/"+tot),React.createElement("div",{style:{fontSize:11,letterSpacing:2,textTransform:"uppercase",color:p?C.gn:C.rd,margin:"6px 0 20px"}},p?"Aprovado":"Não passou"),hu>0&&React.createElement("div",{style:{fontSize:12,color:C.or,marginBottom:12}},"💡 "+hu+" dica(s) usada(s)"),React.createElement("div",{style:{fontSize:14,color:C.td,marginBottom:28,lineHeight:1.6}},p?"Módulo "+mod.id+" dominado!"+(mod.id<7?" Módulo "+(mod.id+1)+" desbloqueado.":""):"Precisa de "+pN+" acertos (70%). Questões novas na próxima tentativa!"),React.createElement("div",{style:{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}},!p&&React.createElement(React.Fragment,null,React.createElement(Btn,{onClick:()=>{setLi(0);setV("lesson")}},"📖 Revisar aula"),React.createElement(Btn,{primary:true,onClick:stQ},"Tentar de novo")),React.createElement(Btn,{primary:p,onClick:fin},p?"Voltar ao Roadmap →":"Roadmap"))),React.createElement(Tutor),React.createElement(Modal))}
+return null}
+ReactDOM.render(React.createElement(App),document.getElementById("root"));
+</script></body></html>
