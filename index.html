@@ -29,7 +29,6 @@ input{font-size:16px!important}
 const{useState,useRef,useEffect,useCallback}=React;
 const SK="matfin_v3";
 const AK="matfin_auth";
-const ACCESS_CODE="MatFin2026";
 const C={bg:"#0F0F0E",card:"#1A1918",bd:"#2A2928",gold:"#C9A84C",gd:"#8B7A3E",tx:"#E8E4DC",td:"#9B9590",tc:"#D0CBC3",gn:"#5B9A5F",gnB:"#5B9A5F20",rd:"#C75450",rdB:"#C7545020",bl:"#6B9BD2",or:"#D4913B",orB:"#D4913B20",hp:"#8B6CC1",hpB:"#8B6CC120"};
 function ld(){try{const d=JSON.parse(localStorage.getItem(SK));if(d&&d.u)return d}catch(e){}return{u:[1],d:[],b:{}}}
 function sv(x){try{localStorage.setItem(SK,JSON.stringify(x))}catch(e){}}
